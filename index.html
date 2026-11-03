@@ -107,7 +107,6 @@
                 <button id="navTeacherBtn" onclick="switchToTeacher()" class="hidden bg-amber-400 text-branddark font-bold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-amber-300 transition">
                     <i class="fa-solid fa-chalkboard-user mr-1"></i> Espace Enseignant
                 </button>
-                <!-- Bouton Réinitialiser masqué par défaut en mode élève -->
                 <button id="resetAppBtn" onclick="resetDataAndReload()" class="hidden bg-red-500/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition" title="Réinitialiser l'application">
                     <i class="fa-solid fa-arrows-rotate mr-1"></i> Réinitialiser
                 </button>
@@ -234,8 +233,9 @@
 
         <!-- VUE ENSEIGNANT -->
         <div id="teacherView" class="hidden space-y-6">
-            <div class="bg-white rounded-2xl card-shadow p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div class="bg-white rounded-2xl card-shadow p-6 space-y-6">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900">Tableau de Bord Enseignant</h2>
                         <p class="text-xs text-slate-500">Gestion des élèves, des classes et du référentiel des domaines.</p>
@@ -245,15 +245,47 @@
                             <i class="fa-solid fa-layer-group mr-1"></i> Gérer les Domaines & Classes
                         </button>
                         <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
-                            <i class="fa-solid fa-user-plus mr-1"></i> Inscrire un élève
+                            <i class="fa-solid fa-user-plus mr-1"></i> Inscrire un élève / Importer CSV
                         </button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
+                <!-- SELECTION / ACCÈS PAR CLASSES -->
+                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-sky-600"></i> Filtrer et afficher par classe :
+                        </span>
+                        <span id="selectedClassCount" class="text-xs text-slate-500 font-medium"></span>
+                    </div>
+
+                    <!-- BLOCS FILIÈRES ET BOUTONS DE CLASSES -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- FILIÈRE AMÉNAGEMENT PAYSAGER -->
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm space-y-2">
+                            <div class="text-[11px] font-bold text-emerald-800 uppercase flex items-center justify-between">
+                                <span><i class="fa-solid fa-tree mr-1 text-emerald-600"></i> Aménagement Paysager</span>
+                                <button onclick="selectTeacherFilter('ALL_AP')" class="text-[10px] text-emerald-600 hover:underline capitalize">Toutes AP</button>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5" id="apClassButtons"></div>
+                        </div>
+
+                        <!-- FILIÈRE PRODUCTION HORTICOLE -->
+                        <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-sm space-y-2">
+                            <div class="text-[11px] font-bold text-amber-800 uppercase flex items-center justify-between">
+                                <span><i class="fa-solid fa-seedling mr-1 text-amber-600"></i> Production Horticole</span>
+                                <button onclick="selectTeacherFilter('ALL_PH')" class="text-[10px] text-amber-600 hover:underline capitalize">Toutes PH</button>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5" id="phClassButtons"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLEAU DES ÉLÈVES FILTRÉS -->
+                <div class="overflow-x-auto border border-slate-100 rounded-xl">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-200 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
                                 <th class="py-3 px-4 font-semibold">Élève</th>
                                 <th class="py-3 px-4 font-semibold">Filière / Classe</th>
                                 <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
@@ -290,37 +322,60 @@
         </div>
     </footer>
 
-    <!-- MODAL D'AJOUT D'ÉLÈVE -->
+    <!-- MODAL D'AJOUT ET D'IMPORTATION D'ÉLÈVES -->
     <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <h3 class="text-lg font-bold text-slate-900 mb-2">Ajouter un élève</h3>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom</label>
-            <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature mb-3">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
+            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Ajouter un ou plusieurs élèves</h3>
             
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe</label>
-            <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-4 bg-white">
-                <optgroup label="Aménagement Paysager - CAP JP">
-                    <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
-                    <option value="2 CAP JP">2 CAP JP (Jardinier Paysagiste)</option>
-                </optgroup>
-                <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
-                    <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
-                    <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
-                    <option value="T PAP">T PAP (Terminale Pro Aménagement Paysager)</option>
-                </optgroup>
-                <optgroup label="Production Horticole - CAP H">
-                    <option value="1 CAP H">1 CAP H (Production Horticole)</option>
-                    <option value="2 CAP H">2 CAP H (Production Horticole)</option>
-                </optgroup>
-                <optgroup label="Production Horticole - BAC / Seconde PPH">
-                    <option value="2 PPH">2 PPH (Seconde Pro Production Horticole)</option>
-                    <option value="1 PCPH">1 PCPH (1ère Pro Conduite de Productions Horticoles)</option>
-                    <option value="T PCPH">T PCPH (Terminale Pro Conduite de Productions Horticoles)</option>
-                </optgroup>
-            </select>
-            <div class="flex justify-end space-x-3">
-                <button onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold">Annuler</button>
-                <button onclick="confirmAddStudent()" class="px-4 py-2 bg-nature text-white rounded-xl text-xs font-semibold">Enregistrer</button>
+            <!-- SELECTION CLASSE POUR LES DEUX MODES -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe à attribuer :</label>
+                <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-2 bg-white font-medium focus:outline-none focus:border-nature">
+                    <optgroup label="Aménagement Paysager - CAP JP">
+                        <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
+                        <option value="2 CAP JP" selected>2 CAP JP (Jardinier Paysagiste)</option>
+                    </optgroup>
+                    <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
+                        <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
+                        <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
+                        <option value="T PAP">T PAP (Terminale Pro Aménagement Paysager)</option>
+                    </optgroup>
+                    <optgroup label="Production Horticole - CAP H">
+                        <option value="1 CAP H">1 CAP H (Production Horticole)</option>
+                        <option value="2 CAP H">2 CAP H (Production Horticole)</option>
+                    </optgroup>
+                    <optgroup label="Production Horticole - BAC / Seconde PPH">
+                        <option value="2 PPH">2 PPH (Seconde Pro Production Horticole)</option>
+                        <option value="1 PCPH">1 PCPH (1ère Pro Conduite de Productions Horticoles)</option>
+                        <option value="T PCPH">T PCPH (Terminale Pro Conduite de Productions Horticoles)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- OPTION CASE À COCHER : SAISIE MANUELLE OU IMPORT CSV PRONOTE -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="csvImportCheck" onchange="toggleCsvImportMode(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4">
+                    <span><i class="fa-solid fa-file-csv text-emerald-600 mr-1"></i> Importer une liste depuis un fichier CSV (Pronote)</span>
+                </label>
+            </div>
+
+            <!-- MODE 1 : SAISIE MANUELLE D'UN ÉLÈVE -->
+            <div id="singleStudentSection">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom :</label>
+                <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature">
+            </div>
+
+            <!-- MODE 2 : IMPORTER FICHES CSV PRONOTE -->
+            <div id="csvImportSection" class="hidden space-y-2">
+                <label class="block text-xs font-semibold text-slate-600">Sélectionner votre fichier d'export Pronote (.csv) :</label>
+                <input type="file" id="csvFileInput" accept=".csv, .txt" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                <p class="text-[11px] text-slate-400 italic">Tous les élèves contenus dans le fichier CSV seront automatiquement ajoutés dans la classe sélectionnée ci-dessus.</p>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-2 border-t border-slate-100">
+                <button onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">Annuler</button>
+                <button onclick="confirmAddStudent()" class="px-4 py-2 bg-nature hover:bg-green-600 text-white rounded-xl text-xs font-semibold shadow transition">Enregistrer</button>
             </div>
         </div>
     </div>
@@ -338,13 +393,11 @@
                 </button>
             </div>
 
-            <!-- CONTENEUR DU QR CODE -->
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center justify-center">
                 <div id="qrcodeContainer" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200"></div>
                 <p class="text-[11px] text-slate-500 mt-2"><i class="fa-solid fa-camera mr-1"></i> Flashez pour ouvrir le passeport directement sur mobile</p>
             </div>
 
-            <!-- LIEN TEXTE ET BOUTONS D'ACTION -->
             <div class="space-y-2">
                 <label class="block text-xs font-semibold text-slate-600 text-left">Lien direct élève :</label>
                 <div class="flex items-center space-x-2">
@@ -413,6 +466,7 @@
 
         let currentStudent = null;
         let activeDomainId = null;
+        let selectedTeacherClassFilter = "ALL";
 
         function getAppData() {
             let data = localStorage.getItem('paysage_app_data_v18');
@@ -480,14 +534,15 @@
             document.getElementById('studentView').classList.add('hidden');
             document.getElementById('teacherView').classList.remove('hidden');
             document.getElementById('navTeacherBtn').classList.add('hidden');
-            document.getElementById('resetAppBtn').classList.remove('hidden'); // Visible uniquement pour l'enseignant
+            document.getElementById('resetAppBtn').classList.remove('hidden');
+            renderTeacherFilterButtons();
             renderTeacherTable();
         }
 
         function showStudentView() {
             document.getElementById('teacherView').classList.add('hidden');
             document.getElementById('studentView').classList.remove('hidden');
-            document.getElementById('resetAppBtn').classList.add('hidden'); // Masqué pour les élèves
+            document.getElementById('resetAppBtn').classList.add('hidden');
             const data = getAppData();
             const stObj = data.students.find(s => s.name === currentStudent);
             if (stObj) {
@@ -651,13 +706,76 @@
             renderCompetenciesList();
         }
 
+        function renderTeacherFilterButtons() {
+            const data = getAppData();
+            const apContainer = document.getElementById('apClassButtons');
+            const phContainer = document.getElementById('phClassButtons');
+            
+            const apClasses = [...apCapClasses, ...apBacClasses];
+            const phClasses = [...phCapClasses, ...phBacClasses];
+
+            let apHtml = `<button onclick="selectTeacherFilter('ALL')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border ${selectedTeacherClassFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">Toutes les classes</button>`;
+            let phHtml = '';
+
+            apClasses.forEach(cls => {
+                const count = data.students.filter(s => s.studentClass === cls).length;
+                const active = selectedTeacherClassFilter === cls;
+                apHtml += `
+                    <button onclick="selectTeacherFilter('${cls}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'}">
+                        <span>${cls}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${active ? 'bg-emerald-800 text-white' : 'bg-emerald-200 text-emerald-900'}">${count}</span>
+                    </button>
+                `;
+            });
+
+            phClasses.forEach(cls => {
+                const count = data.students.filter(s => s.studentClass === cls).length;
+                const active = selectedTeacherClassFilter === cls;
+                phHtml += `
+                    <button onclick="selectTeacherFilter('${cls}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${active ? 'bg-amber-600 text-white border-amber-600 shadow' : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'}">
+                        <span>${cls}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${active ? 'bg-amber-800 text-white' : 'bg-amber-200 text-amber-900'}">${count}</span>
+                    </button>
+                `;
+            });
+
+            apContainer.innerHTML = apHtml;
+            phContainer.innerHTML = phHtml;
+        }
+
+        function selectTeacherFilter(filter) {
+            selectedTeacherClassFilter = filter;
+            renderTeacherFilterButtons();
+            renderTeacherTable();
+        }
+
         function renderTeacherTable() {
             const data = getAppData();
             const tbody = document.getElementById('teacherTableBody');
             tbody.innerHTML = "";
             const baseUrl = window.location.href.split('?')[0];
 
-            data.students.forEach(st => {
+            let filteredStudents = data.students;
+
+            if (selectedTeacherClassFilter === 'ALL_AP') {
+                filteredStudents = data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
+            } else if (selectedTeacherClassFilter === 'ALL_PH') {
+                filteredStudents = data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
+            } else if (selectedTeacherClassFilter !== 'ALL') {
+                filteredStudents = data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
+            }
+
+            const countEl = document.getElementById('selectedClassCount');
+            if (countEl) {
+                countEl.innerText = `${filteredStudents.length} élève(s) affiché(s)`;
+            }
+
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe pour le moment.</td></tr>`;
+                return;
+            }
+
+            filteredStudents.forEach(st => {
                 let total = 0, mastered = 0;
                 const studentDomains = data.domains.filter(d => !d.classes || d.classes.includes(st.studentClass));
 
@@ -912,23 +1030,106 @@
             }
         }
 
-        function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
-        function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
+        function openAddStudentModal() { 
+            document.getElementById('csvImportCheck').checked = false;
+            toggleCsvImportMode(false);
+            document.getElementById('newStudentName').value = "";
+            document.getElementById('csvFileInput').value = "";
+            document.getElementById('addStudentModal').classList.remove('hidden'); 
+        }
+
+        function closeAddStudentModal() { 
+            document.getElementById('addStudentModal').classList.add('hidden'); 
+        }
+
+        function toggleCsvImportMode(isCsv) {
+            const singleSection = document.getElementById('singleStudentSection');
+            const csvSection = document.getElementById('csvImportSection');
+            if (isCsv) {
+                singleSection.classList.add('hidden');
+                csvSection.classList.remove('hidden');
+            } else {
+                singleSection.classList.remove('hidden');
+                csvSection.classList.add('hidden');
+            }
+        }
 
         function confirmAddStudent() {
-            const name = document.getElementById('newStudentName').value.trim();
             const sClass = document.getElementById('newStudentClass').value;
-            if (!name) return alert("Nom requis");
-            const data = getAppData();
-            data.students.push({ name, studentClass: sClass });
+            const isCsvMode = document.getElementById('csvImportCheck').checked;
+
+            if (isCsvMode) {
+                const fileInput = document.getElementById('csvFileInput');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    return alert("Veuillez sélectionner un fichier CSV Pronote.");
+                }
+
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    parseAndImportCSV(content, sClass);
+                };
+
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                const name = document.getElementById('newStudentName').value.trim();
+                if (!name) return alert("Veuillez saisir au moins le Nom et Prénom de l'élève.");
+                
+                const data = getAppData();
+                if (data.students.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                    return alert("Un élève porte déjà ce nom.");
+                }
+
+                addSingleStudentToData(data, name, sClass);
+                saveAppData(data);
+                closeAddStudentModal();
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function addSingleStudentToData(data, name, studentClass) {
+            data.students.push({ name: name, studentClass: studentClass });
             data.records[name] = {};
             data.domains.forEach(d => {
                 data.records[name][d.id] = {};
-                d.competencies.forEach((_, idx) => data.records[name][d.id][idx] = 0);
+                d.competencies.forEach((_, idx) => {
+                    data.records[name][d.id][idx] = 0;
+                });
             });
+        }
+
+        function parseAndImportCSV(text, targetClass) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length <= 1) {
+                return alert("Le fichier CSV est vide ou invalide.");
+            }
+
+            const data = getAppData();
+            let countAdded = 0;
+
+            lines.forEach((line, index) => {
+                if (index === 0 || !line.trim()) return;
+                
+                const cols = line.split(';');
+                if (cols.length > 0) {
+                    let rawName = cols[0].replace(/"/g, '').trim();
+                    if (rawName && rawName !== 'Élèves') {
+                        if (!data.students.some(s => s.name.toLowerCase() === rawName.toLowerCase())) {
+                            addSingleStudentToData(data, rawName, targetClass);
+                            countAdded++;
+                        }
+                    }
+                }
+            });
+
             saveAppData(data);
             closeAddStudentModal();
+            renderTeacherFilterButtons();
             renderTeacherTable();
+            alert(`${countAdded} élève(s) ont été importé(s) avec succès dans la classe ${targetClass} !`);
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
