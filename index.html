@@ -33,21 +33,30 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8FAF9; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
         
-        /* Styles spécifiques pour alignement parfait du tableau */
+        /* Styles spécifiques responsive et défilement fluide mobile */
+        .domains-table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .domains-table {
             width: 100%;
+            min-width: 620px; /* Force la largeur minimale sur mobile pour éviter la superposition des entêtes */
             border-collapse: collapse;
             table-layout: fixed;
         }
+        
         .domains-table th, .domains-table td {
             vertical-align: middle;
-            padding: 14px 16px;
+            padding: 12px 14px;
         }
-        .col-domain { width: 40%; text-align: left; }
-        .col-total { width: 12%; text-align: center; background-color: rgba(241, 245, 249, 0.4); }
-        .col-seen { width: 12%; text-align: center; background-color: rgba(236, 253, 245, 0.4); }
-        .col-mastered { width: 12%; text-align: center; background-color: rgba(254, 243, 199, 0.4); }
-        .col-prog { width: 24%; text-align: right; }
+        
+        .col-domain { width: 220px; text-align: left; }
+        .col-total { width: 75px; text-align: center; background-color: rgba(241, 245, 249, 0.4); }
+        .col-seen { width: 75px; text-align: center; background-color: rgba(236, 253, 245, 0.4); }
+        .col-mastered { width: 95px; text-align: center; background-color: rgba(254, 243, 199, 0.4); }
+        .col-prog { width: 155px; text-align: right; }
         
         .domains-table th.col-total { background-color: rgba(255, 255, 255, 0.05); }
         .domains-table th.col-seen { background-color: rgba(255, 255, 255, 0.05); }
@@ -161,45 +170,47 @@
                 </div>
             </div>
 
-            <!-- TABLEAU DES DOMAINES -->
-            <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-slate-200">
-                <table class="domains-table">
-                    <thead>
-                        <tr class="bg-branddark text-white text-xs font-bold uppercase tracking-wider border-b border-branddark">
-                            <th class="col-domain pl-6">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fa-solid fa-book-open text-base text-amber-300"></i>
-                                    <span>Domaine</span>
-                                </div>
-                            </th>
-                            <th class="col-total">
-                                <div class="flex items-center justify-center space-x-1 text-slate-200">
-                                    <i class="fa-solid fa-sigma"></i>
-                                    <span>Total</span>
-                                </div>
-                            </th>
-                            <th class="col-seen">
-                                <div class="flex items-center justify-center space-x-1 text-emerald-300">
-                                    <i class="fa-solid fa-eye"></i>
-                                    <span>Vues</span>
-                                </div>
-                            </th>
-                            <th class="col-mastered">
-                                <div class="flex items-center justify-center space-x-1 text-amber-300">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    <span>Maîtrisées</span>
-                                </div>
-                            </th>
-                            <th class="col-prog pr-6">
-                                <div class="flex items-center justify-end space-x-1 text-sky-300">
-                                    <i class="fa-solid fa-chart-simple"></i>
-                                    <span>Progression %</span>
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="domainsTableBody" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
-                </table>
+            <!-- TABLEAU DES DOMAINES AVEC DEFILEMENT HORIZONTAL MOBILE POUR EVITER TOUTE SUPERPOSITION -->
+            <div class="bg-white rounded-2xl card-shadow border border-slate-200 overflow-hidden">
+                <div class="domains-table-container">
+                    <table class="domains-table">
+                        <thead>
+                            <tr class="bg-branddark text-white text-xs font-bold uppercase tracking-wider border-b border-branddark">
+                                <th class="col-domain pl-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-book-open text-amber-300"></i>
+                                        <span>Domaine</span>
+                                    </div>
+                                </th>
+                                <th class="col-total">
+                                    <div class="flex items-center justify-center space-x-1 text-slate-200">
+                                        <i class="fa-solid fa-sigma"></i>
+                                        <span>Total</span>
+                                    </div>
+                                </th>
+                                <th class="col-seen">
+                                    <div class="flex items-center justify-center space-x-1 text-emerald-300">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>Vues</span>
+                                    </div>
+                                </th>
+                                <th class="col-mastered">
+                                    <div class="flex items-center justify-center space-x-1 text-amber-300">
+                                        <i class="fa-solid fa-trophy"></i>
+                                        <span>Maîtrisées</span>
+                                    </div>
+                                </th>
+                                <th class="col-prog pr-4">
+                                    <div class="flex items-center justify-end space-x-1 text-sky-300">
+                                        <i class="fa-solid fa-chart-simple"></i>
+                                        <span>Progression %</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="domainsTableBody" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- VUE DÉTAILLÉE DU DOMAINE -->
@@ -402,10 +413,9 @@
 
         let currentStudent = null;
         let activeDomainId = null;
-        let qrCodeInstance = null;
 
         function getAppData() {
-            let data = localStorage.getItem('paysage_app_data_v17');
+            let data = localStorage.getItem('paysage_app_data_v18');
             if (!data) {
                 data = {
                     domains: defaultDomains,
@@ -428,7 +438,7 @@
                         });
                     });
                 });
-                localStorage.setItem('paysage_app_data_v17', JSON.stringify(data));
+                localStorage.setItem('paysage_app_data_v18', JSON.stringify(data));
             } else {
                 data = JSON.parse(data);
                 data.domains.forEach(d => {
@@ -439,11 +449,11 @@
         }
 
         function saveAppData(data) {
-            localStorage.setItem('paysage_app_data_v17', JSON.stringify(data));
+            localStorage.setItem('paysage_app_data_v18', JSON.stringify(data));
         }
 
         function resetDataAndReload() {
-            if (confirm("Voulez-vous réinitialiser toutes les données de l'application ?")) {
+            if (confirm("Voulez-vous réinitialiser toutes les données pour appliquer les modifications d'affichage mobile ?")) {
                 localStorage.clear();
                 window.location.reload();
             }
@@ -554,23 +564,23 @@
 
                 tbody.innerHTML += `
                     <tr onclick="openDomainDetail('${domain.id}')" class="hover:bg-slate-50 transition cursor-pointer border-b border-slate-100">
-                        <td class="col-domain pl-6">
-                            <div class="flex items-center space-x-3">
+                        <td class="col-domain pl-4">
+                            <div class="flex items-center space-x-2.5">
                                 <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs flex-shrink-0 shadow-sm">
                                     <i class="fa-solid ${domain.icon || 'fa-book'}"></i>
                                 </div>
-                                <span class="font-bold text-slate-800 text-sm">${domain.title}</span>
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm leading-tight">${domain.title}</span>
                             </div>
                         </td>
-                        <td class="col-total font-bold text-slate-700 text-sm">${total}</td>
-                        <td class="col-seen font-bold text-emerald-600 text-sm">${seen}</td>
-                        <td class="col-mastered font-bold text-amber-600 text-sm">${mastered}</td>
-                        <td class="col-prog pr-6">
-                            <div class="flex items-center justify-end space-x-3">
-                                <div class="w-32 bg-slate-100 h-3 rounded-full overflow-hidden">
+                        <td class="col-total font-bold text-slate-700 text-xs sm:text-sm">${total}</td>
+                        <td class="col-seen font-bold text-emerald-600 text-xs sm:text-sm">${seen}</td>
+                        <td class="col-mastered font-bold text-amber-600 text-xs sm:text-sm">${mastered}</td>
+                        <td class="col-prog pr-4">
+                            <div class="flex items-center justify-end space-x-2">
+                                <div class="w-20 sm:w-28 bg-slate-100 h-2.5 rounded-full overflow-hidden">
                                     <div class="bg-emerald-500 h-full rounded-full" style="width: ${pct}%"></div>
                                 </div>
-                                <span class="text-sm font-bold text-slate-800 w-10 text-right">${pct}%</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 w-8 text-right">${pct}%</span>
                             </div>
                         </td>
                     </tr>
@@ -684,7 +694,6 @@
             document.getElementById('modalStudentClassBadge').innerText = "Filière / Classe : " + studentClass;
             document.getElementById('modalStudentUrl').value = url;
             
-            // Génération dynamique du QR code dans le conteneur
             const qrContainer = document.getElementById('qrcodeContainer');
             qrContainer.innerHTML = "";
             
