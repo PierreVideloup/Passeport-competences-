@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Passeport de Compétences - Horticole & Aménagement Paysager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nature: '#4CAF50',
+                        trust: '#2196F3',
+                        progress: '#FF9800',
+                        branddark: '#0c3547'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8FAF9; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        
+        /* Styles spécifiques pour alignement parfait du tableau */
+        .domains-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .domains-table th, .domains-table td {
+            vertical-align: middle;
+            padding: 14px 16px;
+        }
+        .col-domain { width: 40%; text-align: left; }
+        .col-total { width: 12%; text-align: center; background-color: rgba(241, 245, 249, 0.4); }
+        .col-seen { width: 12%; text-align: center; background-color: rgba(236, 253, 245, 0.4); }
+        .col-mastered { width: 12%; text-align: center; background-color: rgba(254, 243, 199, 0.4); }
+        .col-prog { width: 24%; text-align: right; }
+        
+        .domains-table th.col-total { background-color: rgba(255, 255, 255, 0.05); }
+        .domains-table th.col-seen { background-color: rgba(255, 255, 255, 0.05); }
+        .domains-table th.col-mastered { background-color: rgba(255, 255, 255, 0.05); }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <div class="max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+        
+        <!-- EN-TÊTE STYLE VISUEL -->
+        <header class="bg-branddark text-white shadow-xl p-6 sm:p-8 rounded-3xl flex flex-col lg:flex-row justify-between items-center gap-6 relative overflow-hidden">
+            <div class="flex items-center space-x-4 text-center lg:text-left">
+                <div class="bg-amber-400 text-branddark p-3.5 rounded-2xl text-3xl shadow-md">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-2xl sm:text-3xl text-amber-300 tracking-wide">Mon Passeport de Compétences</h1>
+                    <p class="text-xs sm:text-sm text-slate-200 mt-1">Mes acquis aujourd’hui <i class="fa-solid fa-arrow-right mx-1 text-amber-400"></i> Mes réussites demain !</p>
+                </div>
+            </div>
+
+            <!-- INFOS ÉLÈVE REMPLIES AUTO -->
+            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 w-full lg:w-96 space-y-1.5 text-xs text-slate-100">
+                <div class="flex justify-between border-b border-white/10 pb-1">
+                    <span class="text-slate-300"><i class="fa-solid fa-user mr-2"></i>Nom :</span>
+                    <span id="infoName" class="font-bold text-white">—</span>
+                </div>
+                <div class="flex justify-between border-b border-white/10 pb-1">
+                    <span class="text-slate-300"><i class="fa-solid fa-user-tag mr-2"></i>Prénom :</span>
+                    <span id="infoFirstName" class="font-bold text-white">—</span>
+                </div>
+                <div class="flex justify-between border-b border-white/10 pb-1">
+                    <span class="text-slate-300"><i class="fa-solid fa-school mr-2"></i>Classe :</span>
+                    <span id="infoClass" class="font-bold text-amber-300">—</span>
+                </div>
+                <div class="flex justify-between pt-0.5">
+                    <span class="text-slate-300"><i class="fa-solid fa-calendar mr-2"></i>Année scolaire :</span>
+                    <span class="font-bold text-white">2026 - 2027</span>
+                </div>
+            </div>
+            
+            <div class="absolute top-3 right-4 flex space-x-2">
+                <button id="navTeacherBtn" onclick="switchToTeacher()" class="hidden bg-amber-400 text-branddark font-bold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-amber-300 transition">
+                    <i class="fa-solid fa-chalkboard-user mr-1"></i> Espace Enseignant
+                </button>
+                <button onclick="resetDataAndReload()" class="bg-red-500/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition" title="Réinitialiser l'application">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Réinitialiser
+                </button>
+                <button onclick="window.print()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-print"></i> Imprimer
+                </button>
+            </div>
+        </header>
+
+        <!-- VUE ÉLÈVE -->
+        <div id="studentView" class="space-y-6">
+            <!-- BANDEAUX DE COMPTEURS -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="bg-teal-50 border border-teal-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div class="flex items-center space-x-2 text-teal-800 text-xs font-bold uppercase">
+                        <i class="fa-solid fa-bullseye text-sm"></i>
+                        <span>Compétences visées</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-3">
+                        <span id="totalCount" class="text-3xl font-extrabold text-teal-900">0</span>
+                        <i class="fa-solid fa-list-check text-teal-300 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-sky-50 border border-sky-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div class="flex items-center space-x-2 text-sky-800 text-xs font-bold uppercase">
+                        <i class="fa-solid fa-eye text-sm"></i>
+                        <span>Compétences vues</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-3">
+                        <span id="seenCount" class="text-3xl font-extrabold text-sky-900">0</span>
+                        <i class="fa-solid fa-eye text-sky-300 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div class="flex items-center space-x-2 text-amber-800 text-xs font-bold uppercase">
+                        <i class="fa-solid fa-trophy text-sm"></i>
+                        <span>Compétences maîtrisées</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-3">
+                        <span id="masteredCount" class="text-3xl font-extrabold text-amber-900">0</span>
+                        <i class="fa-solid fa-award text-amber-300 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 bg-white p-4 rounded-2xl card-shadow flex items-center justify-between border border-slate-100">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase">Mon taux de progression</p>
+                        <span id="globalPercent" class="text-3xl font-black text-branddark">0%</span>
+                        <p id="motivationalMessage" class="text-[11px] text-emerald-600 font-semibold mt-1">Tu progresses super bien !</p>
+                    </div>
+                    <div class="w-16 h-16 relative flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="32" cy="32" r="26" stroke="#e2e8f0" stroke-width="6" fill="transparent"></circle>
+                            <circle id="progressCircle" cx="32" cy="32" r="26" stroke="#4CAF50" stroke-width="6" stroke-dasharray="163.36" stroke-dashoffset="100" stroke-linecap="round" fill="transparent" class="transition-all duration-700"></circle>
+                        </svg>
+                        <i class="fa-solid fa-arrow-trend-up absolute text-nature text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLEAU DES DOMAINES -->
+            <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-slate-200">
+                <table class="domains-table">
+                    <thead>
+                        <tr class="bg-branddark text-white text-xs font-bold uppercase tracking-wider border-b border-branddark">
+                            <th class="col-domain pl-6">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fa-solid fa-book-open text-base text-amber-300"></i>
+                                    <span>Domaine</span>
+                                </div>
+                            </th>
+                            <th class="col-total">
+                                <div class="flex items-center justify-center space-x-1 text-slate-200">
+                                    <i class="fa-solid fa-sigma"></i>
+                                    <span>Total</span>
+                                </div>
+                            </th>
+                            <th class="col-seen">
+                                <div class="flex items-center justify-center space-x-1 text-emerald-300">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>Vues</span>
+                                </div>
+                            </th>
+                            <th class="col-mastered">
+                                <div class="flex items-center justify-center space-x-1 text-amber-300">
+                                    <i class="fa-solid fa-trophy"></i>
+                                    <span>Maîtrisées</span>
+                                </div>
+                            </th>
+                            <th class="col-prog pr-6">
+                                <div class="flex items-center justify-end space-x-1 text-sky-300">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                    <span>Progression %</span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainsTableBody" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
+                </table>
+            </div>
+
+            <!-- VUE DÉTAILLÉE DU DOMAINE -->
+            <div id="domainDetailView" class="hidden bg-white rounded-2xl card-shadow p-6 border border-slate-100">
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="backToDomains()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl flex items-center justify-center transition">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div>
+                            <h3 id="detailDomainTitle" class="text-lg font-bold text-slate-900">Nom du domaine</h3>
+                            <p class="text-xs text-slate-500">Cliquez sur les boutons pour indiquer votre niveau sur chaque compétence.</p>
+                        </div>
+                    </div>
+                    <span id="detailDomainBadge" class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">0% validé</span>
+                </div>
+                
+                <div id="competenciesList" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- VUE ENSEIGNANT -->
+        <div id="teacherView" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl card-shadow p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Tableau de Bord Enseignant</h2>
+                        <p class="text-xs text-slate-500">Gestion des élèves, des classes et du référentiel des domaines.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="openManageDomainsModal()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
+                            <i class="fa-solid fa-layer-group mr-1"></i> Gérer les Domaines & Classes
+                        </button>
+                        <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Inscrire un élève
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-400 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-4 font-semibold">Élève</th>
+                                <th class="py-3 px-4 font-semibold">Filière / Classe</th>
+                                <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
+                                <th class="py-3 px-4 font-semibold">Progression</th>
+                                <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FRISE INFÉRIEURE DE MOTIVATION -->
+    <footer class="w-full bg-white border-t border-slate-200 py-4 px-6 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-around items-center text-xs font-bold text-slate-600 gap-4">
+            <div class="flex items-center space-x-2 bg-emerald-50 text-emerald-800 px-4 py-2 rounded-xl border border-emerald-100">
+                <i class="fa-solid fa-mountain text-emerald-600"></i><span>1. Observer</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-300"></i>
+            <div class="flex items-center space-x-2 bg-sky-50 text-sky-800 px-4 py-2 rounded-xl border border-sky-100">
+                <i class="fa-solid fa-lightbulb text-sky-600"></i><span>2. Apprendre</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-300"></i>
+            <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 px-4 py-2 rounded-xl border border-amber-100">
+                <i class="fa-solid fa-gear text-amber-600"></i><span>3. Progresser</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-300"></i>
+            <div class="flex items-center space-x-2 bg-purple-50 text-purple-800 px-4 py-2 rounded-xl border border-purple-100">
+                <i class="fa-solid fa-trophy text-purple-600"></i><span>4. Réussir</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL D'AJOUT D'ÉLÈVE -->
+    <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Ajouter un élève</h3>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom</label>
+            <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature mb-3">
+            
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe</label>
+            <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-4 bg-white">
+                <optgroup label="Aménagement Paysager - CAP JP">
+                    <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
+                    <option value="2 CAP JP">2 CAP JP (Jardinier Paysagiste)</option>
+                </optgroup>
+                <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
+                    <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
+                    <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
+                    <option value="T PAP">T PAP (Terminale Pro Aménagement Paysager)</option>
+                </optgroup>
+                <optgroup label="Production Horticole - CAP H">
+                    <option value="1 CAP H">1 CAP H (Production Horticole)</option>
+                    <option value="2 CAP H">2 CAP H (Production Horticole)</option>
+                </optgroup>
+                <optgroup label="Production Horticole - BAC / Seconde PPH">
+                    <option value="2 PPH">2 PPH (Seconde Pro Production Horticole)</option>
+                    <option value="1 PCPH">1 PCPH (1ère Pro Conduite de Productions Horticoles)</option>
+                    <option value="T PCPH">T PCPH (Terminale Pro Conduite de Productions Horticoles)</option>
+                </optgroup>
+            </select>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold">Annuler</button>
+                <button onclick="confirmAddStudent()" class="px-4 py-2 bg-nature text-white rounded-xl text-xs font-semibold">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GENERATEUR DE QR CODE AVEC TELECHARGEMENT -->
+    <div id="linkModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="text-left">
+                    <h3 class="text-base font-bold text-slate-900" id="modalStudentName"></h3>
+                    <p class="text-xs text-slate-400" id="modalStudentClassBadge"></p>
+                </div>
+                <button onclick="document.getElementById('linkModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- CONTENEUR DU QR CODE -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center justify-center">
+                <div id="qrcodeContainer" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+                <p class="text-[11px] text-slate-500 mt-2"><i class="fa-solid fa-camera mr-1"></i> Flashez pour ouvrir le passeport directement sur mobile</p>
+            </div>
+
+            <!-- LIEN TEXTE ET BOUTONS D'ACTION -->
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-600 text-left">Lien direct élève :</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="modalStudentUrl" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 select-all">
+                    <button onclick="copyStudentUrl()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl flex items-center shrink-0">
+                        <i class="fa-solid fa-copy mr-1"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="downloadQRCode()" class="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center">
+                    <i class="fa-solid fa-download mr-1.5"></i> Télécharger le QR
+                </button>
+                <button onclick="document.getElementById('linkModal').classList.add('hidden')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTION DES DOMAINES & CLASSES -->
+    <div id="manageDomainsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-3xl w-full shadow-xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Gestion des Domaines & Assignation par Filières / Classes</h3>
+                <button onclick="closeManageDomainsModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="mb-4 flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <span class="text-xs font-semibold text-slate-700">Créer un nouveau domaine d'enseignement :</span>
+                <button onclick="addNewDomainPrompt()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Ajouter un domaine
+                </button>
+            </div>
+
+            <div id="manageDomainsContainer" class="flex-grow overflow-y-auto space-y-4 pr-1">
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIQUE & DONNÉES -->
+    <script>
+        const apCapClasses = ["1 CAP JP", "2 CAP JP"];
+        const apBacClasses = ["2 NJPF", "1 PAP", "T PAP"];
+        const phCapClasses = ["1 CAP H", "2 CAP H"];
+        const phBacClasses = ["2 PPH", "1 PCPH", "T PCPH"];
+
+        const availableClassesList = [
+            ...apCapClasses,
+            ...apBacClasses,
+            ...phCapClasses,
+            ...phBacClasses
+        ];
+
+        const defaultDomains = [
+            { id: "atelier", title: "Les bases d'un atelier", icon: "fa-wrench", classes: availableClassesList, competencies: ["Je me repère dans l'atelier", "Les règles de sécurité et affichage dans un atelier", "Les bases de la sécurité", "L'outillage", "La sécurité incendie"] },
+            { id: "moteurs", title: "Les différents moteurs et leur fonctionnement", icon: "fa-gears", classes: ["2 NJPF", "1 PAP", "T PAP", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["L'historique de la motorisation", "Les différentes motorisations", "Notions de puissance", "Les carburants", "Le mélange", "Le cycle du 4 temps", "Le cycle 2 temps", "Les éléments annexes", "Le carburateur à cuve", "Le carburateur à membrannes", "La lubrification", "Les huiles", "Le refroidissement"] },
+            { id: "entretien", title: "Entretien des éléments", icon: "fa-sliders", classes: availableClassesList, competencies: ["La vidange", "Le filtre à air", "La bougie d'allumage", "Affuter un lame", "Remplacer un cable", "La roue libre", "Le lanceur", "Remplacer une tête de débroussailleuse", "Affuter le lamier d'un taille haie", "Affuter un sécateur", "Affuter une chaine de tronconneuse", "Entretien d'un carburateur à cuve", "Entretien carburateur membrannes", "L'allumage", "Les points de graissage", "Le démarreur", "Les pneumatiques", "Les chenilles de la mini-pelle"] },
+            { id: "machines", title: "Utilisation d'une machine", icon: "fa-tractor", classes: availableClassesList, competencies: ["Mise en route de la tondeuse", "Mise en route d'un taille haie", "Mise en route d'une débroussailleuse", "Mise en route d'un motoculteur", "Mise en route du broyeur", "Mise en route du soufleur", "Utilisation d'une meuleuse d'angle", "Utilisation de la visseuse / perceuse / perforateur", "Utiliser la perceuse à colonne"] },
+            { id: "diverses", title: "Connaissances diverses", icon: "fa-lightbulb", classes: ["2 CAP JP", "2 NJPF", "1 PAP", "T PAP", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["Le couple de serrage", "Les notices d'emplois", "Une vue éclatée", "Les engrennages", "L'air comprimée", "Les rivets et inserts", "La visserie", "Filletage et taraudage"] },
+            { id: "electricite", title: "Électricité", icon: "fa-bolt", classes: ["1 PAP", "T PAP", "1 PCPH", "T PCPH"], competencies: ["Les notions électrique", "Mesure et contrôle résistance / tension", "La fabrication de l'energie", "Electricité du batiment", "Les fusibles", "L'éclairage", "Les cosses", "Les rallonges électriques", "Les prises remorques"] },
+            { id: "metallerie", title: "Métallerie", icon: "fa-hammer", classes: ["2 CAP JP", "1 PAP", "T PAP"], competencies: ["Métrologie Tracage", "Plan de fabrication", "Travail des métaux manuel", "Travail des métaux électroportatif", "Soudure"] },
+            { id: "irrigation", title: "Irrigation", icon: "fa-droplet", classes: ["2 NJPF", "1 PAP", "T PAP", "1 CAP H", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["Les notions hydrauliques", "Etude d'un réseau d'irrigation", "Les raccords PVC", "Les raccords à compressions", "L'aspersion/ le goutte à goutte", "Les vannes et electrovannes", "La programmation des électrovannes"] }
+        ];
+
+        let currentStudent = null;
+        let activeDomainId = null;
+        let qrCodeInstance = null;
+
+        function getAppData() {
+            let data = localStorage.getItem('paysage_app_data_v17');
+            if (!data) {
+                data = {
+                    domains: defaultDomains,
+                    students: [
+                        { name: "Pierre", studentClass: "1 CAP JP" },
+                        { name: "Lucas", studentClass: "2 CAP JP" },
+                        { name: "Mathieu", studentClass: "2 NJPF" },
+                        { name: "Antoine", studentClass: "1 PAP" },
+                        { name: "Emma", studentClass: "1 CAP H" },
+                        { name: "Hugo", studentClass: "T PCPH" }
+                    ],
+                    records: {}
+                };
+                data.students.forEach(st => {
+                    data.records[st.name] = {};
+                    data.domains.forEach(domain => {
+                        data.records[st.name][domain.id] = {};
+                        domain.competencies.forEach((comp, idx) => {
+                            data.records[st.name][domain.id][idx] = 0;
+                        });
+                    });
+                });
+                localStorage.setItem('paysage_app_data_v17', JSON.stringify(data));
+            } else {
+                data = JSON.parse(data);
+                data.domains.forEach(d => {
+                    if (!d.classes) d.classes = availableClassesList;
+                });
+            }
+            return data;
+        }
+
+        function saveAppData(data) {
+            localStorage.setItem('paysage_app_data_v17', JSON.stringify(data));
+        }
+
+        function resetDataAndReload() {
+            if (confirm("Voulez-vous réinitialiser toutes les données de l'application ?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        }
+
+        function initApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eleveParam = urlParams.get('eleve');
+            const teacherParam = urlParams.get('teacher');
+            const data = getAppData();
+
+            if (teacherParam === 'true') {
+                switchToTeacher();
+            } else if (eleveParam && data.students.some(s => s.name === eleveParam)) {
+                currentStudent = eleveParam;
+                showStudentView();
+            } else {
+                currentStudent = data.students[0].name;
+                switchToTeacher();
+            }
+        }
+
+        function switchToTeacher() {
+            document.getElementById('studentView').classList.add('hidden');
+            document.getElementById('teacherView').classList.remove('hidden');
+            document.getElementById('navTeacherBtn').classList.add('hidden');
+            renderTeacherTable();
+        }
+
+        function showStudentView() {
+            document.getElementById('teacherView').classList.add('hidden');
+            document.getElementById('studentView').classList.remove('hidden');
+            const data = getAppData();
+            const stObj = data.students.find(s => s.name === currentStudent);
+            if (stObj) {
+                const parts = currentStudent.split(' ');
+                document.getElementById('infoName').innerText = parts[1] || parts[0];
+                document.getElementById('infoFirstName').innerText = parts[0];
+                document.getElementById('infoClass').innerText = stObj.studentClass;
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.get('eleve')) {
+                document.getElementById('navTeacherBtn').classList.remove('hidden');
+            }
+            renderDashboard();
+        }
+
+        function getStudentActiveDomains() {
+            const data = getAppData();
+            const stObj = data.students.find(s => s.name === currentStudent);
+            if (!stObj) return data.domains;
+            return data.domains.filter(d => !d.classes || d.classes.includes(stObj.studentClass));
+        }
+
+        function renderDashboard() {
+            const data = getAppData();
+            const studentData = data.records[currentStudent] || {};
+            const studentDomains = getStudentActiveDomains();
+
+            let totalComps = 0, seenComps = 0, masteredComps = 0;
+
+            studentDomains.forEach(domain => {
+                const compMap = studentData[domain.id] || {};
+                domain.competencies.forEach((_, idx) => {
+                    const val = compMap[idx] || 0;
+                    totalComps++;
+                    if (val === 1) seenComps++;
+                    if (val === 2) masteredComps++;
+                });
+            });
+
+            const overallScore = totalComps > 0 ? Math.round((masteredComps / totalComps) * 100) : 0;
+
+            document.getElementById('totalCount').innerText = totalComps;
+            document.getElementById('seenCount').innerText = seenComps;
+            document.getElementById('masteredCount').innerText = masteredComps;
+            document.getElementById('globalPercent').innerText = overallScore + '%';
+            
+            const dashoffset = 163.36 - (163.36 * overallScore) / 100;
+            document.getElementById('progressCircle').style.strokeDashoffset = dashoffset;
+
+            renderDomainsTable(studentDomains);
+        }
+
+        function renderDomainsTable(studentDomains) {
+            const data = getAppData();
+            const studentData = data.records[currentStudent] || {};
+            const tbody = document.getElementById('domainsTableBody');
+            tbody.innerHTML = "";
+
+            if (studentDomains.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">Aucun domaine assigné à cette classe pour le moment.</td></tr>`;
+                return;
+            }
+
+            studentDomains.forEach(domain => {
+                const compMap = studentData[domain.id] || {};
+                let total = domain.competencies.length;
+                let seen = 0, mastered = 0;
+
+                domain.competencies.forEach((_, idx) => {
+                    const val = compMap[idx] || 0;
+                    if (val === 1) seen++;
+                    if (val === 2) mastered++;
+                });
+
+                let pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+
+                tbody.innerHTML += `
+                    <tr onclick="openDomainDetail('${domain.id}')" class="hover:bg-slate-50 transition cursor-pointer border-b border-slate-100">
+                        <td class="col-domain pl-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs flex-shrink-0 shadow-sm">
+                                    <i class="fa-solid ${domain.icon || 'fa-book'}"></i>
+                                </div>
+                                <span class="font-bold text-slate-800 text-sm">${domain.title}</span>
+                            </div>
+                        </td>
+                        <td class="col-total font-bold text-slate-700 text-sm">${total}</td>
+                        <td class="col-seen font-bold text-emerald-600 text-sm">${seen}</td>
+                        <td class="col-mastered font-bold text-amber-600 text-sm">${mastered}</td>
+                        <td class="col-prog pr-6">
+                            <div class="flex items-center justify-end space-x-3">
+                                <div class="w-32 bg-slate-100 h-3 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                                <span class="text-sm font-bold text-slate-800 w-10 text-right">${pct}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openDomainDetail(domainId) {
+            activeDomainId = domainId;
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === domainId);
+            document.getElementById('detailDomainTitle').innerText = domain.title;
+            document.getElementById('domainDetailView').classList.remove('hidden');
+            document.getElementById('domainDetailView').scrollIntoView({ behavior: 'smooth' });
+            renderCompetenciesList();
+        }
+
+        function backToDomains() {
+            activeDomainId = null;
+            document.getElementById('domainDetailView').classList.add('hidden');
+        }
+
+        function renderCompetenciesList() {
+            if (!activeDomainId) return;
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === activeDomainId);
+            if (!domain) return;
+
+            if (!data.records[currentStudent][activeDomainId]) {
+                data.records[currentStudent][activeDomainId] = {};
+            }
+            const studentData = data.records[currentStudent][activeDomainId];
+            const container = document.getElementById('competenciesList');
+            container.innerHTML = "";
+
+            let masteredCount = 0;
+            domain.competencies.forEach((comp, idx) => {
+                const level = studentData[idx] || 0;
+                if (level === 2) masteredCount++;
+
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">${idx + 1}</span>
+                            <span class="text-sm font-medium text-slate-800">${comp}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 0)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 0 ? 'bg-slate-500 text-white shadow' : 'bg-slate-200 text-slate-600'}">Non vu</button>
+                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 1)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 1 ? 'bg-amber-500 text-white shadow' : 'bg-amber-100 text-amber-700'}">En cours</button>
+                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 2)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 2 ? 'bg-nature text-white shadow' : 'bg-green-100 text-green-700'}">Maîtrisé</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const pct = domain.competencies.length > 0 ? Math.round((masteredCount / domain.competencies.length) * 100) : 0;
+            document.getElementById('detailDomainBadge').innerText = pct + '% validé';
+            renderDashboard();
+        }
+
+        function setCompetenceLevel(domainId, compIdx, level) {
+            const data = getAppData();
+            if (!data.records[currentStudent][domainId]) data.records[currentStudent][domainId] = {};
+            data.records[currentStudent][domainId][compIdx] = level;
+            saveAppData(data);
+            renderCompetenciesList();
+        }
+
+        function renderTeacherTable() {
+            const data = getAppData();
+            const tbody = document.getElementById('teacherTableBody');
+            tbody.innerHTML = "";
+            const baseUrl = window.location.href.split('?')[0];
+
+            data.students.forEach(st => {
+                let total = 0, mastered = 0;
+                const studentDomains = data.domains.filter(d => !d.classes || d.classes.includes(st.studentClass));
+
+                studentDomains.forEach(domain => {
+                    const compMap = data.records[st.name][domain.id] || {};
+                    domain.competencies.forEach((_, idx) => {
+                        const val = compMap[idx] || 0;
+                        total++;
+                        if (val === 2) mastered++;
+                    });
+                });
+                let pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+                let studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
+                let isAP = apCapClasses.includes(st.studentClass) || apBacClasses.includes(st.studentClass);
+                let badgeColor = isAP ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 font-semibold text-slate-800">${st.name}</td>
+                        <td class="py-3 px-4"><span class="px-2.5 py-1 text-xs font-bold rounded-lg border ${badgeColor}">${st.studentClass}</span></td>
+                        <td class="py-3 px-4">
+                            <button onclick="showLinkModal('${st.name}', '${st.studentClass}', '${studentUrl}')" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 shadow-sm flex items-center space-x-1.5 transition">
+                                <i class="fa-solid fa-qrcode text-sm"></i>
+                                <span>Générer QR</span>
+                            </button>
+                        </td>
+                        <td class="py-3 px-4"><div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-nature h-full" style="width: ${pct}%"></div></div></td>
+                        <td class="py-3 px-4 text-right"><button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Voir</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function showLinkModal(name, studentClass, url) {
+            document.getElementById('modalStudentName').innerText = name;
+            document.getElementById('modalStudentClassBadge').innerText = "Filière / Classe : " + studentClass;
+            document.getElementById('modalStudentUrl').value = url;
+            
+            // Génération dynamique du QR code dans le conteneur
+            const qrContainer = document.getElementById('qrcodeContainer');
+            qrContainer.innerHTML = "";
+            
+            new QRCode(qrContainer, {
+                text: url,
+                width: 160,
+                height: 160,
+                colorDark : "#0c3547",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('linkModal').classList.remove('hidden');
+        }
+
+        function copyStudentUrl() {
+            const input = document.getElementById('modalStudentUrl');
+            input.select();
+            document.execCommand('copy');
+            alert("Lien copié dans le presse-papier !");
+        }
+
+        function downloadQRCode() {
+            const img = document.querySelector('#qrcodeContainer img');
+            const studentName = document.getElementById('modalStudentName').innerText || 'eleve';
+            if (img && img.src) {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = `QR_Code_${studentName.replace(/\s+/g, '_')}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert("Le QR Code est en cours de création, réessayez dans un instant.");
+            }
+        }
+
+        function openManageDomainsModal() {
+            renderManageDomainsList();
+            document.getElementById('manageDomainsModal').classList.remove('hidden');
+        }
+
+        function closeManageDomainsModal() {
+            document.getElementById('manageDomainsModal').classList.add('hidden');
+            renderDashboard();
+        }
+
+        function generateCheckboxGroup(domain, classesArray) {
+            let html = '';
+            classesArray.forEach(cls => {
+                const isChecked = domain.classes && domain.classes.includes(cls) ? 'checked' : '';
+                html += `
+                    <label class="inline-flex items-center space-x-1.5 text-xs bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                        <input type="checkbox" ${isChecked} onchange="toggleDomainClass('${domain.id}', '${cls}', this.checked)" class="rounded text-nature focus:ring-nature">
+                        <span class="font-semibold text-slate-700">${cls}</span>
+                    </label>
+                `;
+            });
+            return html;
+        }
+
+        function renderManageDomainsList() {
+            const data = getAppData();
+            const container = document.getElementById('manageDomainsContainer');
+            container.innerHTML = "";
+
+            data.domains.forEach((domain, dIdx) => {
+                const apCapCheckboxes = generateCheckboxGroup(domain, apCapClasses);
+                const apBacCheckboxes = generateCheckboxGroup(domain, apBacClasses);
+                const phCapCheckboxes = generateCheckboxGroup(domain, phCapClasses);
+                const phBacCheckboxes = generateCheckboxGroup(domain, phBacClasses);
+
+                let compsHtml = '';
+                domain.competencies.forEach((comp, cIdx) => {
+                    compsHtml += `
+                        <div class="flex justify-between items-center py-1.5 px-2 bg-white rounded-lg border border-slate-100 text-xs">
+                            <span class="text-slate-700">${cIdx + 1}. ${comp}</span>
+                            <button onclick="removeCompetencyFromDomain('${domain.id}', ${cIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                <input type="text" value="${domain.title}" onchange="updateDomainTitle('${domain.id}', this.value)" class="font-bold text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-xl w-full sm:w-72 focus:outline-none focus:border-nature">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="deleteEntireDomain('${domain.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl font-semibold transition"><i class="fa-solid fa-trash mr-1"></i> Supprimer le domaine</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 pt-1">
+                            <span class="font-bold text-xs text-slate-600 block">Classes ayant accès à ce domaine :</span>
+                            
+                            <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 space-y-2">
+                                <span class="text-[11px] font-bold text-emerald-800 uppercase block"><i class="fa-solid fa-tree mr-1"></i> Aménagement Paysager</span>
+                                <div>
+                                    <span class="text-[10px] font-semibold text-emerald-700 block mb-1">CAP JP :</span>
+                                    <div class="flex flex-wrap gap-2">${apCapCheckboxes}</div>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-semibold text-emerald-700 block mb-1">2 NJPF & BAC Pro (PAP) :</span>
+                                    <div class="flex flex-wrap gap-2">${apBacCheckboxes}</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-100 space-y-2">
+                                <span class="text-[11px] font-bold text-amber-800 uppercase block"><i class="fa-solid fa-seedling mr-1"></i> Production Horticole</span>
+                                <div>
+                                    <span class="text-[10px] font-semibold text-amber-700 block mb-1">CAP H :</span>
+                                    <div class="flex flex-wrap gap-2">${phCapCheckboxes}</div>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-semibold text-amber-700 block mb-1">2 PPH & BAC Pro (PCPH) :</span>
+                                    <div class="flex flex-wrap gap-2">${phBacCheckboxes}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 pt-2 border-t border-slate-200">
+                            <span class="font-semibold text-xs text-slate-500 block mb-1">Compétences du domaine (${domain.competencies.length}) :</span>
+                            <div class="space-y-1 max-h-40 overflow-y-auto pr-1">${compsHtml}</div>
+                            <div class="flex space-x-2 mt-2">
+                                <input type="text" id="newCompInput_${domain.id}" placeholder="Ajouter une compétence..." class="flex-grow px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white">
+                                <button onclick="addCompetencyToDomain('${domain.id}')" class="bg-nature text-white px-3 py-1.5 rounded-xl text-xs font-semibold">Ajouter</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addNewDomainPrompt() {
+            const title = prompt("Nom du nouveau domaine :");
+            if (!title) return;
+            const data = getAppData();
+            const newId = 'domain_' + Date.now();
+            data.domains.push({
+                id: newId,
+                title: title,
+                icon: "fa-book-open",
+                classes: availableClassesList,
+                competencies: []
+            });
+            data.students.forEach(st => {
+                if (!data.records[st.name]) data.records[st.name] = {};
+                data.records[st.name][newId] = {};
+            });
+            saveAppData(data);
+            renderManageDomainsList();
+        }
+
+        function updateDomainTitle(domainId, newTitle) {
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === domainId);
+            if (domain) {
+                domain.title = newTitle;
+                saveAppData(data);
+            }
+        }
+
+        function deleteEntireDomain(domainId) {
+            if (confirm("Voulez-vous vraiment supprimer ce domaine et toutes ses compétences pour l'ensemble des classes ?")) {
+                const data = getAppData();
+                data.domains = data.domains.filter(d => d.id !== domainId);
+                saveAppData(data);
+                renderManageDomainsList();
+            }
+        }
+
+        function toggleDomainClass(domainId, className, isChecked) {
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === domainId);
+            if (domain) {
+                if (!domain.classes) domain.classes = [];
+                if (isChecked) {
+                    if (!domain.classes.includes(className)) domain.classes.push(className);
+                } else {
+                    domain.classes = domain.classes.filter(c => c !== className);
+                }
+                saveAppData(data);
+            }
+        }
+
+        function addCompetencyToDomain(domainId) {
+            const input = document.getElementById(`newCompInput_${domainId}`);
+            const val = input.value.trim();
+            if (!val) return;
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === domainId);
+            if (domain) {
+                domain.competencies.push(val);
+                const newIdx = domain.competencies.length - 1;
+                data.students.forEach(st => {
+                    if (!data.records[st.name][domainId]) data.records[st.name][domainId] = {};
+                    data.records[st.name][domainId][newIdx] = 0;
+                });
+                saveAppData(data);
+                renderManageDomainsList();
+            }
+        }
+
+        function removeCompetencyFromDomain(domainId, cIdx) {
+            if (confirm("Supprimer cette compétence ?")) {
+                const data = getAppData();
+                const domain = data.domains.find(d => d.id === domainId);
+                if (domain) {
+                    domain.competencies.splice(cIdx, 1);
+                    saveAppData(data);
+                    renderManageDomainsList();
+                }
+            }
+        }
+
+        function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
+        function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); }
+
+        function confirmAddStudent() {
+            const name = document.getElementById('newStudentName').value.trim();
+            const sClass = document.getElementById('newStudentClass').value;
+            if (!name) return alert("Nom requis");
+            const data = getAppData();
+            data.students.push({ name, studentClass: sClass });
+            data.records[name] = {};
+            data.domains.forEach(d => {
+                data.records[name][d.id] = {};
+                d.competencies.forEach((_, idx) => data.records[name][d.id][idx] = 0);
+            });
+            saveAppData(data);
+            closeAddStudentModal();
+            renderTeacherTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
