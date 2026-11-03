@@ -471,47 +471,6 @@
         let activeDomainId = null;
         let selectedTeacherClassFilter = "ALL";
 
-        function deleteStudent(studentName) {
-            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
-                let data = getAppData();
-                data.students = data.students.filter(s => s.name !== studentName);
-                if (data.records && data.records[studentName]) {
-                    delete data.records[studentName];
-                }
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-            }
-        }
-
-        function deleteEntireClass(className) {
-            if (confirm(`⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la classe "${className}" et TOUS ses élèves ? Cette action est irréversible.`)) {
-                let data = getAppData();
-                // Identifier les élèves de cette classe
-                const studentsToRemove = data.students.filter(s => s.studentClass === className);
-                
-                // Supprimer les enregistrements des élèves de cette classe
-                studentsToRemove.forEach(st => {
-                    if (data.records && data.records[st.name]) {
-                        delete data.records[st.name];
-                    }
-                });
-
-                // Filtrer la liste des élèves pour retirer ceux de cette classe
-                data.students = data.students.filter(s => s.studentClass !== className);
-                
-                // Si la classe active actuelle était celle-ci, repasser le filtre à ALL
-                if (selectedTeacherClassFilter === className) {
-                    selectedTeacherClassFilter = "ALL";
-                }
-
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
-            }
-        }
-
         function getAppData() {
             let data = localStorage.getItem('paysage_app_data_v18');
             if (!data) {
@@ -554,6 +513,43 @@
             if (confirm("Voulez-vous réinitialiser toutes les données de l'application ?")) {
                 localStorage.clear();
                 window.location.reload();
+            }
+        }
+
+        function deleteStudent(studentName) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
+                let data = getAppData();
+                data.students = data.students.filter(s => s.name !== studentName);
+                if (data.records && data.records[studentName]) {
+                    delete data.records[studentName];
+                }
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function deleteEntireClass(className) {
+            if (confirm(`⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la classe "${className}" et TOUS ses élèves ? Cette action est irréversible.`)) {
+                let data = getAppData();
+                const studentsToRemove = data.students.filter(s => s.studentClass === className);
+                
+                studentsToRemove.forEach(st => {
+                    if (data.records && data.records[st.name]) {
+                        delete data.records[st.name];
+                    }
+                });
+
+                data.students = data.students.filter(s => s.studentClass !== className);
+                
+                if (selectedTeacherClassFilter === className) {
+                    selectedTeacherClassFilter = "ALL";
+                }
+
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
             }
         }
 
@@ -786,7 +782,6 @@
             apContainer.innerHTML = apHtml;
             phContainer.innerHTML = phHtml;
 
-            // Gérer l'affichage du bouton de suppression de classe si une classe spécifique est sélectionnée
             const deleteContainer = document.getElementById('deleteClassActionContainer');
             if (deleteContainer) {
                 if (selectedTeacherClassFilter !== 'ALL' && selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
