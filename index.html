@@ -33,7 +33,6 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8FAF9; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
         
-        /* Styles spécifiques responsive et défilement fluide mobile */
         .domains-table-container {
             width: 100%;
             overflow-x: auto;
@@ -42,7 +41,7 @@
 
         .domains-table {
             width: 100%;
-            min-width: 620px; /* Force la largeur minimale sur mobile pour éviter la superposition des entêtes */
+            min-width: 620px;
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -108,7 +107,8 @@
                 <button id="navTeacherBtn" onclick="switchToTeacher()" class="hidden bg-amber-400 text-branddark font-bold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-amber-300 transition">
                     <i class="fa-solid fa-chalkboard-user mr-1"></i> Espace Enseignant
                 </button>
-                <button onclick="resetDataAndReload()" class="bg-red-500/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition" title="Réinitialiser l'application">
+                <!-- Bouton Réinitialiser masqué par défaut en mode élève -->
+                <button id="resetAppBtn" onclick="resetDataAndReload()" class="hidden bg-red-500/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition" title="Réinitialiser l'application">
                     <i class="fa-solid fa-arrows-rotate mr-1"></i> Réinitialiser
                 </button>
                 <button onclick="window.print()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-lg transition">
@@ -170,7 +170,7 @@
                 </div>
             </div>
 
-            <!-- TABLEAU DES DOMAINES AVEC DEFILEMENT HORIZONTAL MOBILE POUR EVITER TOUTE SUPERPOSITION -->
+            <!-- TABLEAU DES DOMAINES -->
             <div class="bg-white rounded-2xl card-shadow border border-slate-200 overflow-hidden">
                 <div class="domains-table-container">
                     <table class="domains-table">
@@ -453,7 +453,7 @@
         }
 
         function resetDataAndReload() {
-            if (confirm("Voulez-vous réinitialiser toutes les données pour appliquer les modifications d'affichage mobile ?")) {
+            if (confirm("Voulez-vous réinitialiser toutes les données de l'application ?")) {
                 localStorage.clear();
                 window.location.reload();
             }
@@ -480,12 +480,14 @@
             document.getElementById('studentView').classList.add('hidden');
             document.getElementById('teacherView').classList.remove('hidden');
             document.getElementById('navTeacherBtn').classList.add('hidden');
+            document.getElementById('resetAppBtn').classList.remove('hidden'); // Visible uniquement pour l'enseignant
             renderTeacherTable();
         }
 
         function showStudentView() {
             document.getElementById('teacherView').classList.add('hidden');
             document.getElementById('studentView').classList.remove('hidden');
+            document.getElementById('resetAppBtn').classList.add('hidden'); // Masqué pour les élèves
             const data = getAppData();
             const stObj = data.students.find(s => s.name === currentStudent);
             if (stObj) {
