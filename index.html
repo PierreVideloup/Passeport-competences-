@@ -252,11 +252,14 @@
 
                 <!-- SELECTION / ACCÈS PAR CLASSES -->
                 <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
                             <i class="fa-solid fa-filter text-sky-600"></i> Filtrer et afficher par classe :
                         </span>
-                        <span id="selectedClassCount" class="text-xs text-slate-500 font-medium"></span>
+                        <div class="flex items-center gap-3">
+                            <span id="selectedClassCount" class="text-xs text-slate-500 font-medium"></span>
+                            <div id="deleteClassActionContainer"></div>
+                        </div>
                     </div>
 
                     <!-- BLOCS FILIÈRES ET BOUTONS DE CLASSES -->
@@ -467,6 +470,47 @@
         let currentStudent = null;
         let activeDomainId = null;
         let selectedTeacherClassFilter = "ALL";
+
+        function deleteStudent(studentName) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
+                let data = getAppData();
+                data.students = data.students.filter(s => s.name !== studentName);
+                if (data.records && data.records[studentName]) {
+                    delete data.records[studentName];
+                }
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function deleteEntireClass(className) {
+            if (confirm(`⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la classe "${className}" et TOUS ses élèves ? Cette action est irréversible.`)) {
+                let data = getAppData();
+                // Identifier les élèves de cette classe
+                const studentsToRemove = data.students.filter(s => s.studentClass === className);
+                
+                // Supprimer les enregistrements des élèves de cette classe
+                studentsToRemove.forEach(st => {
+                    if (data.records && data.records[st.name]) {
+                        delete data.records[st.name];
+                    }
+                });
+
+                // Filtrer la liste des élèves pour retirer ceux de cette classe
+                data.students = data.students.filter(s => s.studentClass !== className);
+                
+                // Si la classe active actuelle était celle-ci, repasser le filtre à ALL
+                if (selectedTeacherClassFilter === className) {
+                    selectedTeacherClassFilter = "ALL";
+                }
+
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
+            }
+        }
 
         function getAppData() {
             let data = localStorage.getItem('paysage_app_data_v18');
@@ -741,6 +785,22 @@
 
             apContainer.innerHTML = apHtml;
             phContainer.innerHTML = phHtml;
+
+            // Gérer l'affichage du bouton de suppression de classe si une classe spécifique est sélectionnée
+            const deleteContainer = document.getElementById('deleteClassActionContainer');
+            if (deleteContainer) {
+                if (selectedTeacherClassFilter !== 'ALL' && selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
+                    const studentCountInClass = data.students.filter(s => s.studentClass === selectedTeacherClassFilter).length;
+                    deleteContainer.innerHTML = `
+                        <button onclick="deleteEntireClass('${selectedTeacherClassFilter}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Supprimer la classe ${selectedTeacherClassFilter} (${studentCountInClass} élève${studentCountInClass > 1 ? 's' : ''})</span>
+                        </button>
+                    `;
+                } else {
+                    deleteContainer.innerHTML = '';
+                }
+            }
         }
 
         function selectTeacherFilter(filter) {
@@ -803,7 +863,12 @@
                             </button>
                         </td>
                         <td class="py-3 px-4"><div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-nature h-full" style="width: ${pct}%"></div></div></td>
-                        <td class="py-3 px-4 text-right"><button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Voir</button></td>
+                        <td class="py-3 px-4 text-right space-x-1">
+                            <button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg" title="Voir le profil">Voir</button>
+                            <button onclick="deleteStudent('${st.name}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs rounded-lg transition" title="Supprimer l'élève">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
