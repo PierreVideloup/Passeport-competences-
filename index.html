@@ -229,159 +229,68 @@
                         <h2 class="text-xl font-bold text-slate-900">Tableau de Bord Enseignant</h2>
                         <p class="text-xs text-slate-500">Gestion des élèves, des classes et du référentiel des domaines.</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div>
                         <button onclick="openManageDomainsModal()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition">
                             <i class="fa-solid fa-layer-group mr-1"></i> Domaines & Classes
                         </button>
-                        <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition">
-                            <i class="fa-solid fa-user-gear mr-1"></i> Gérer les élèves
-                        </button>
                     </div>
                 </div>
 
-                <!-- SELECTION / ACCÈS PAR CLASSES -->
-                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
-                            <i class="fa-solid fa-filter text-sky-600"></i> Filtrer et afficher par classe :
-                        </span>
-                        <div class="flex items-center gap-3">
-                            <span id="selectedClassCount" class="text-xs text-slate-500 font-medium"></span>
-                            <div id="deleteClassActionContainer"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm space-y-2">
-                            <div class="text-[11px] font-bold text-emerald-800 uppercase flex items-center justify-between">
-                                <span><i class="fa-solid fa-tree mr-1 text-emerald-600"></i> Aménagement Paysager</span>
-                                <button onclick="selectTeacherFilter('ALL_AP')" class="text-[10px] text-emerald-600 hover:underline capitalize">Toutes AP</button>
+                <!-- ENCARTS GESTION ÉLÈVES : AJOUT INDIVIDUEL ET IMPORTATION CSV -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- ENCART 1 : AJOUTER UN ÉLÈVE -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-nature"></i> Ajouter un élève individuellement
+                        </h3>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Classe / Filière :</label>
+                                <select id="singleStudentClass" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white font-medium focus:outline-none focus:border-nature">
+                                    <optgroup label="Aménagement Paysager - CAP JP">
+                                        <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
+                                        <option value="2 CAP JP" selected>2 CAP JP (Jardinier Paysagiste)</option>
+                                    </optgroup>
+                                    <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
+                                        <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
+                                        <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
+                                        <option value="T PAP">T PAP (Terminale Pro Aménagement Paysager)</option>
+                                    </optgroup>
+                                    <optgroup label="Production Horticole - CAP H">
+                                        <option value="1 CAP H">1 CAP H (Production Horticole)</option>
+                                        <option value="2 CAP H">2 CAP H (Production Horticole)</option>
+                                    </optgroup>
+                                    <optgroup label="Production Horticole - BAC / Seconde PPH">
+                                        <option value="2 PPH">2 PPH (Seconde Pro Production Horticole)</option>
+                                        <option value="1 PCPH">1 PCPH (1ère Pro Conduite de Productions Horticoles)</option>
+                                        <option value="T PCPH">T PCPH (Terminale Pro Conduite de Productions Horticoles)</option>
+                                    </optgroup>
+                                </select>
                             </div>
-                            <div class="flex flex-wrap gap-1.5" id="apClassButtons"></div>
-                        </div>
-
-                        <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-sm space-y-2">
-                            <div class="text-[11px] font-bold text-amber-800 uppercase flex items-center justify-between">
-                                <span><i class="fa-solid fa-seedling mr-1 text-amber-600"></i> Production Horticole</span>
-                                <button onclick="selectTeacherFilter('ALL_PH')" class="text-[10px] text-amber-600 hover:underline capitalize">Toutes PH</button>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nom et Prénom :</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="singleStudentName" placeholder="Ex: Dupont Lucas" class="flex-grow px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:border-nature">
+                                    <button onclick="addNewSingleStudent()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow transition shrink-0">Ajouter</button>
+                                </div>
                             </div>
-                            <div class="flex flex-wrap gap-1.5" id="phClassButtons"></div>
                         </div>
                     </div>
-                </div>
 
-                <!-- TABLEAU DES ÉLÈVES FILTRÉS AVEC SUPPRESSION GROUPÉE -->
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center px-1">
-                        <span class="text-xs font-semibold text-slate-500" id="selectionCountBadge">0 élève(s) sélectionné(s)</span>
-                        <button id="deleteSelectedBtn" onclick="deleteSelectedStudents()" disabled class="bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Supprimer la sélection</span>
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto border border-slate-100 rounded-xl">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                                    <th class="py-3 px-4 w-10 text-center">
-                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllStudents(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4 cursor-pointer">
-                                    </th>
-                                    <th class="py-3 px-4 font-semibold">Élève</th>
-                                    <th class="py-3 px-4 font-semibold">Filière / Classe (Modifiable)</th>
-                                    <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
-                                    <th class="py-3 px-4 font-semibold">Progression</th>
-                                    <th class="py-3 px-4 font-semibold text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="teacherTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- FRISE INFÉRIEURE DE MOTIVATION -->
-    <footer class="w-full bg-white border-t border-slate-200 py-4 px-6 mt-8">
-        <div class="max-w-7xl mx-auto flex flex-wrap justify-around items-center text-xs font-bold text-slate-600 gap-4">
-            <div class="flex items-center space-x-2 bg-emerald-50 text-emerald-800 px-4 py-2 rounded-xl border border-emerald-100">
-                <i class="fa-solid fa-mountain text-emerald-600"></i><span>1. Observer</span>
-            </div>
-            <i class="fa-solid fa-arrow-right text-slate-300"></i>
-            <div class="flex items-center space-x-2 bg-sky-50 text-sky-800 px-4 py-2 rounded-xl border border-sky-100">
-                <i class="fa-solid fa-lightbulb text-sky-600"></i><span>2. Apprendre</span>
-            </div>
-            <i class="fa-solid fa-arrow-right text-slate-300"></i>
-            <div class="flex items-center space-x-2 bg-amber-50 text-amber-800 px-4 py-2 rounded-xl border border-amber-100">
-                <i class="fa-solid fa-gear text-amber-600"></i><span>3. Progresser</span>
-            </div>
-            <i class="fa-solid fa-arrow-right text-slate-300"></i>
-            <div class="flex items-center space-x-2 bg-purple-50 text-purple-800 px-4 py-2 rounded-xl border border-purple-100">
-                <i class="fa-solid fa-trophy text-purple-600"></i><span>4. Réussir</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- MODAL D'AJOUT ET D'IMPORTATION D'ÉLÈVES -->
-    <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
-            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Gestion des élèves</h3>
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe à attribuer :</label>
-                <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-2 bg-white font-medium focus:outline-none focus:border-nature">
-                    <optgroup label="Aménagement Paysager - CAP JP">
-                        <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
-                        <option value="2 CAP JP" selected>2 CAP JP (Jardinier Paysagiste)</option>
-                    </optgroup>
-                    <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
-                        <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
-                        <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
-                        <option value="T PAP">T PAP (Terminale Pro Aménagement Paysager)</option>
-                    </optgroup>
-                    <optgroup label="Production Horticole - CAP H">
-                        <option value="1 CAP H">1 CAP H (Production Horticole)</option>
-                        <option value="2 CAP H">2 CAP H (Production Horticole)</option>
-                    </optgroup>
-                    <optgroup label="Production Horticole - BAC / Seconde PPH">
-                        <option value="2 PPH">2 PPH (Seconde Pro Production Horticole)</option>
-                        <option value="1 PCPH">1 PCPH (1ère Pro Conduite de Productions Horticoles)</option>
-                        <option value="T PCPH">T PCPH (Terminale Pro Conduite de Productions Horticoles)</option>
-                    </optgroup>
-                </select>
-            </div>
-
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer">
-                    <input type="checkbox" id="csvImportCheck" onchange="toggleCsvImportMode(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4">
-                    <span><i class="fa-solid fa-file-csv text-emerald-600 mr-1"></i> Importer une liste depuis un fichier CSV (Pronote)</span>
-                </label>
-            </div>
-
-            <div id="singleStudentSection">
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom :</label>
-                <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature">
-            </div>
-
-            <div id="csvImportSection" class="hidden space-y-2">
-                <label class="block text-xs font-semibold text-slate-600">Sélectionner votre fichier d'export Pronote (.csv) :</label>
-                <input type="file" id="csvFileInput" accept=".csv, .txt" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                <p class="text-[11px] text-slate-400 italic">Tous les élèves contenus dans le fichier CSV seront automatiquement ajoutés dans la classe sélectionnée ci-dessus.</p>
-            </div>
-
-            <div class="flex justify-end space-x-3 pt-2 border-t border-slate-100">
-                <button onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">Annuler</button>
-                <button onclick="confirmAddStudent()" class="px-4 py-2 bg-nature hover:bg-green-600 text-white rounded-xl text-xs font-semibold shadow transition">Enregistrer</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL GENERATEUR DE QR CODE -->
-    <div id="linkModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <div class="text-left">
-                    <h3 class="text-base font-bold text-slate-900" id="modalStudentName"></h3>
-                    <p class="text-xs text-slate-400" id="modalStudentClassBadge"></p>
-                </div>
-                <button onclick="document.getElementById('linkModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-60
+                    <!-- ENCART 2 : IMPORTER UNE LISTE -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-file-csv text-emerald-600"></i> Importer une liste (Pronote)
+                        </h3>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Classe cible pour l'import :</label>
+                                <select id="csvTargetClass" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white font-medium focus:outline-none focus:border-nature">
+                                    <optgroup label="Aménagement Paysager - CAP JP">
+                                        <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
+                                        <option value="2 CAP JP" selected>2 CAP JP (Jardinier Paysagiste)</option>
+                                    </optgroup>
+                                    <optgroup label="Aménagement Paysager - BAC / Seconde NJPF">
+                                        <option value="2 NJPF">2 NJPF (Seconde Nature Jardin Paysage Forêt)</option>
+                                        <option value="1 PAP">1 PAP (1ère Pro Aménagement Paysager)</option>
+                                        <option value="T PAP
