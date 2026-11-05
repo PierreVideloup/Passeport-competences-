@@ -270,20 +270,32 @@
                     </div>
                 </div>
 
-                <!-- TABLEAU DES ÉLÈVES FILTRÉS -->
-                <div class="overflow-x-auto border border-slate-100 rounded-xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                                <th class="py-3 px-4 font-semibold">Élève</th>
-                                <th class="py-3 px-4 font-semibold">Filière / Classe (Modifiable)</th>
-                                <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
-                                <th class="py-3 px-4 font-semibold">Progression</th>
-                                <th class="py-3 px-4 font-semibold text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="teacherTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                    </table>
+                <!-- TABLEAU DES ÉLÈVES FILTRÉS AVEC SUPPRESSION GROUPÉE -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <span class="text-xs font-semibold text-slate-500" id="selectionCountBadge">0 élève(s) sélectionné(s)</span>
+                        <button id="deleteSelectedBtn" onclick="deleteSelectedStudents()" disabled class="bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Supprimer la sélection</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                                    <th class="py-3 px-4 w-10 text-center">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllStudents(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4 cursor-pointer">
+                                    </th>
+                                    <th class="py-3 px-4 font-semibold">Élève</th>
+                                    <th class="py-3 px-4 font-semibold">Filière / Classe (Modifiable)</th>
+                                    <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
+                                    <th class="py-3 px-4 font-semibold">Progression</th>
+                                    <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -526,19 +538,7 @@
 
         let currentStudent = null;
         let activeDomainId = null;
-        let selectedTeacherClassFilter = "ALL";
-
-        function deleteStudent(studentName) {
-            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données.`)) {
-                let data = getAppData();
-                data.students = data.students.filter(s => s.name !== studentName);
-                if (data.records && data.records[studentName]) delete data.records[studentName];
-                if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-            }
-        }
+        let selectedTeacherClassFilter = "ALL_AP";
 
         function changeStudentClass(studentName, newClass) {
             let data = getAppData();
@@ -562,12 +562,56 @@
                 });
 
                 data.students = data.students.filter(s => s.studentClass !== className);
-                if (selectedTeacherClassFilter === className) selectedTeacherClassFilter = "ALL";
+                if (selectedTeacherClassFilter === className) selectedTeacherClassFilter = "ALL_AP";
 
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
                 alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés.`);
+            }
+        }
+
+        function toggleSelectAllStudents(isChecked) {
+            const checkboxes = document.querySelectorAll('.student-select-cb');
+            checkboxes.forEach(cb => cb.checked = isChecked);
+            updateSelectionState();
+        }
+
+        function updateSelectionState() {
+            const checkboxes = document.querySelectorAll('.student-select-cb');
+            const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            const btn = document.getElementById('deleteSelectedBtn');
+            const badge = document.getElementById('selectionCountBadge');
+
+            if (selectAllCb) {
+                selectAllCb.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+            }
+            if (badge) {
+                badge.innerText = `${selectedCount} élève(s) sélectionné(s)`;
+            }
+            if (btn) {
+                btn.disabled = selectedCount === 0;
+            }
+        }
+
+        function deleteSelectedStudents() {
+            const checkboxes = document.querySelectorAll('.student-select-cb:checked');
+            const selectedNames = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedNames.length === 0) return;
+
+            if (confirm(`Voulez-vous vraiment supprimer les ${selectedNames.length} élève(s) sélectionné(s) ?Cette action effacera définitivement toutes leurs données.`)) {
+                let data = getAppData();
+                selectedNames.forEach(name => {
+                    data.students = data.students.filter(s => s.name !== name);
+                    if (data.records && data.records[name]) delete data.records[name];
+                    if (data.courseRecords && data.courseRecords[name]) delete data.courseRecords[name];
+                });
+
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
             }
         }
 
@@ -875,7 +919,7 @@
             const apClasses = [...apCapClasses, ...apBacClasses];
             const phClasses = [...phCapClasses, ...phBacClasses];
 
-            let apHtml = `<button onclick="selectTeacherFilter('ALL')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border ${selectedTeacherClassFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">Toutes les classes</button>`;
+            let apHtml = '';
             let phHtml = '';
 
             apClasses.forEach(cls => {
@@ -905,7 +949,7 @@
 
             const deleteContainer = document.getElementById('deleteClassActionContainer');
             if (deleteContainer) {
-                if (selectedTeacherClassFilter !== 'ALL' && selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
+                if (selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
                     const studentCountInClass = data.students.filter(s => s.studentClass === selectedTeacherClassFilter).length;
                     deleteContainer.innerHTML = `
                         <button onclick="deleteEntireClass('${selectedTeacherClassFilter}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
@@ -937,7 +981,7 @@
                 filteredStudents = data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
             } else if (selectedTeacherClassFilter === 'ALL_PH') {
                 filteredStudents = data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
-            } else if (selectedTeacherClassFilter !== 'ALL') {
+            } else {
                 filteredStudents = data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
             }
 
@@ -945,7 +989,8 @@
             if (countEl) countEl.innerText = `${filteredStudents.length} élève(s) affiché(s)`;
 
             if (filteredStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe.</td></tr>`;
+                updateSelectionState();
                 return;
             }
 
@@ -968,6 +1013,9 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 text-center">
+                            <input type="checkbox" value="${st.name}" onchange="updateSelectionState()" class="student-select-cb rounded text-nature focus:ring-nature w-4 h-4 cursor-pointer">
+                        </td>
                         <td class="py-3 px-4 font-semibold text-slate-800">${st.name}</td>
                         <td class="py-3 px-4">
                             <select onchange="changeStudentClass('${st.name}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:border-nature cursor-pointer">
@@ -981,15 +1029,14 @@
                             </button>
                         </td>
                         <td class="py-3 px-4"><div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-nature h-full" style="width: ${pct}%"></div></div></td>
-                        <td class="py-3 px-4 text-right space-x-1">
+                        <td class="py-3 px-4 text-right">
                             <button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg" title="Voir le profil">Voir</button>
-                            <button onclick="deleteStudent('${st.name}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs rounded-lg transition" title="Supprimer l'élève">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
                         </td>
                     </tr>
                 `;
             });
+
+            updateSelectionState();
         }
 
         function showLinkModal(name, studentClass, url) {
