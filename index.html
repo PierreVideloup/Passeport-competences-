@@ -241,12 +241,19 @@
                         <p class="text-xs text-slate-500">Gestion des élèves, des classes et du référentiel des domaines.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="openManageDomainsModal()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
-                            <i class="fa-solid fa-layer-group mr-1"></i> Gérer les Domaines & Classes
+                        <button onclick="openManageDomainsModal()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition">
+                            <i class="fa-solid fa-layer-group mr-1"></i> Domaines & Classes
                         </button>
-                        <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
+                        <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition">
                             <i class="fa-solid fa-user-gear mr-1"></i> Gérer les élèves
                         </button>
+                        <button onclick="exportAppDataJson()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-2.5 rounded-xl shadow transition" title="Télécharger une sauvegarde JSON">
+                            <i class="fa-solid fa-download mr-1"></i> Sauvegarder
+                        </button>
+                        <label class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-2.5 rounded-xl shadow transition cursor-pointer" title="Restaurer une sauvegarde JSON">
+                            <i class="fa-solid fa-upload mr-1"></i> Restaurer
+                            <input type="file" accept=".json" onchange="importAppDataJson(event)" class="hidden">
+                        </label>
                     </div>
                 </div>
 
@@ -519,8 +526,42 @@
             }
         }
 
+
+        function exportAppDataJson() {
+            const data = getAppData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "sauvegarde_passeport_competences_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importAppDataJson(event) {
+            const fileReader = new FileReader();
+            if (event.target.files && event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData && importedData.students && importedData.domains) {
+                            if (confirm("Voulez-vous restaurer ces données ? Cela remplacera la liste actuelle par la sauvegarde.")) {
+                                saveAppData(importedData);
+                                window.location.reload();
+                            }
+                        } else {
+                            alert("Format de fichier de sauvegarde invalide.");
+                        }
+                    } catch (err) {
+                        alert("Erreur lors de la lecture du fichier JSON.");
+                    }
+                };
+            }
+        }
+
         function getAppData() {
-            let data = localStorage.getItem('paysage_app_data_v18');
+            let data = localStorage.getItem('paysage_app_data_definitif');
             if (!data) {
                 data = {
                     domains: defaultDomains,
@@ -543,7 +584,7 @@
                         });
                     });
                 });
-                localStorage.setItem('paysage_app_data_v18', JSON.stringify(data));
+                localStorage.setItem('paysage_app_data_definitif', JSON.stringify(data));
             } else {
                 data = JSON.parse(data);
                 data.domains.forEach(d => {
@@ -554,7 +595,7 @@
         }
 
         function saveAppData(data) {
-            localStorage.setItem('paysage_app_data_v18', JSON.stringify(data));
+            localStorage.setItem('paysage_app_data_definitif', JSON.stringify(data));
         }
 
         function resetDataAndReload() {
@@ -856,7 +897,6 @@
                 let pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
                 let studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
                 
-                // Générer les options du select pour changer de classe tout en gardant les compétences
                 let classOptions = availableClassesList.map(cls => `<option value="${cls}" ${cls === st.studentClass ? 'selected' : ''}>${cls}</option>`).join('');
 
                 tbody.innerHTML += `
