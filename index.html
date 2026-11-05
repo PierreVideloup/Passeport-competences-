@@ -463,15 +463,98 @@
             ...phBacClasses
         ];
 
+        // Format normalisé des compétences : { text: "Nom de la compétence", hasCourse: true/false }
         const defaultDomains = [
-            { id: "atelier", title: "Les bases d'un atelier", icon: "fa-wrench", classes: availableClassesList, competencies: ["Je me repère dans l'atelier", "Les règles de sécurité et affichage dans un atelier", "Les bases de la sécurité", "L'outillage", "La sécurité incendie"] },
-            { id: "moteurs", title: "Les différents moteurs et leur fonctionnement", icon: "fa-gears", classes: ["2 NJPF", "1 PAP", "T PAP", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["L'historique de la motorisation", "Les différentes motorisations", "Notions de puissance", "Les carburants", "Le mélange", "Le cycle du 4 temps", "Le cycle 2 temps", "Les éléments annexes", "Le carburateur à cuve", "Le carburateur à membrannes", "La lubrification", "Les huiles", "Le refroidissement"] },
-            { id: "entretien", title: "Entretien des éléments", icon: "fa-sliders", classes: availableClassesList, competencies: ["La vidange", "Le filtre à air", "La bougie d'allumage", "Affuter un lame", "Remplacer un cable", "La roue libre", "Le lanceur", "Remplacer une tête de débroussailleuse", "Affuter le lamier d'un taille haie", "Affuter un sécateur", "Affuter une chaine de tronconneuse", "Entretien d'un carburateur à cuve", "Entretien carburateur membrannes", "L'allumage", "Les points de graissage", "Le démarreur", "Les pneumatiques", "Les chenilles de la mini-pelle"] },
-            { id: "machines", title: "Utilisation d'une machine", icon: "fa-tractor", classes: availableClassesList, competencies: ["Mise en route de la tondeuse", "Mise en route d'un taille haie", "Mise en route d'une débroussailleuse", "Mise en route d'un motoculteur", "Mise en route du broyeur", "Mise en route du soufleur", "Utilisation d'une meuleuse d'angle", "Utilisation de la visseuse / perceuse / perforateur", "Utiliser la perceuse à colonne"] },
-            { id: "diverses", title: "Connaissances diverses", icon: "fa-lightbulb", classes: ["2 CAP JP", "2 NJPF", "1 PAP", "T PAP", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["Le couple de serrage", "Les notices d'emplois", "Une vue éclatée", "Les engrennages", "L'air comprimée", "Les rivets et inserts", "La visserie", "Filletage et taraudage"] },
-            { id: "electricite", title: "Électricité", icon: "fa-bolt", classes: ["1 PAP", "T PAP", "1 PCPH", "T PCPH"], competencies: ["Les notions électrique", "Mesure et contrôle résistance / tension", "La fabrication de l'energie", "Electricité du batiment", "Les fusibles", "L'éclairage", "Les cosses", "Les rallonges électriques", "Les prises remorques"] },
-            { id: "metallerie", title: "Métallerie", icon: "fa-hammer", classes: ["2 CAP JP", "1 PAP", "T PAP"], competencies: ["Métrologie Tracage", "Plan de fabrication", "Travail des métaux manuel", "Travail des métaux électroportatif", "Soudure"] },
-            { id: "irrigation", title: "Irrigation", icon: "fa-droplet", classes: ["2 NJPF", "1 PAP", "T PAP", "1 CAP H", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: ["Les notions hydrauliques", "Etude d'un réseau d'irrigation", "Les raccords PVC", "Les raccords à compressions", "L'aspersion/ le goutte à goutte", "Les vannes et electrovannes", "La programmation des électrovannes"] }
+            { id: "atelier", title: "Les bases d'un atelier", icon: "fa-wrench", classes: availableClassesList, competencies: [
+                { text: "Je me repère dans l'atelier", hasCourse: true },
+                { text: "Les règles de sécurité et affichage dans un atelier", hasCourse: true },
+                { text: "Les bases de la sécurité", hasCourse: true },
+                { text: "L'outillage", hasCourse: false },
+                { text: "La sécurité incendie", hasCourse: true }
+            ] },
+            { id: "moteurs", title: "Les différents moteurs et leur fonctionnement", icon: "fa-gears", classes: ["2 NJPF", "1 PAP", "T PAP", "2 PPH", "1 PCPH", "T PCPH"], competencies: [
+                { text: "L'historique de la motorisation", hasCourse: true },
+                { text: "Les différentes motorisations", hasCourse: true },
+                { text: "Notions de puissance", hasCourse: true },
+                { text: "Les carburants", hasCourse: true },
+                { text: "Le mélange", hasCourse: true },
+                { text: "Le cycle du 4 temps", hasCourse: true },
+                { text: "Le cycle 2 temps", hasCourse: true },
+                { text: "Les éléments annexes", hasCourse: false },
+                { text: "Le carburateur à cuve", hasCourse: true },
+                { text: "Le carburateur à membrannes", hasCourse: true },
+                { text: "La lubrification", hasCourse: true },
+                { text: "Les huiles", hasCourse: true },
+                { text: "Le refroidissement", hasCourse: true }
+            ] },
+            { id: "entretien", title: "Entretien des éléments", icon: "fa-sliders", classes: availableClassesList, competencies: [
+                { text: "La vidange", hasCourse: true },
+                { text: "Le filtre à air", hasCourse: true },
+                { text: "La bougie d'allumage", hasCourse: true },
+                { text: "Affuter un lame", hasCourse: false },
+                { text: "Remplacer un cable", hasCourse: false },
+                { text: "La roue libre", hasCourse: false },
+                { text: "Le lanceur", hasCourse: false },
+                { text: "Remplacer une tête de débroussailleuse", hasCourse: false },
+                { text: "Affuter le lamier d'un taille haie", hasCourse: false },
+                { text: "Affuter un sécateur", hasCourse: false },
+                { text: "Affuter une chaine de tronconneuse", hasCourse: false },
+                { text: "Entretien d'un carburateur à cuve", hasCourse: true },
+                { text: "Entretien carburateur membrannes", hasCourse: true },
+                { text: "L'allumage", hasCourse: true },
+                { text: "Les points de graissage", hasCourse: false },
+                { text: "Le démarreur", hasCourse: true },
+                { text: "Les pneumatiques", hasCourse: true },
+                { text: "Les chenilles de la mini-pelle", hasCourse: false }
+            ] },
+            { id: "machines", title: "Utilisation d'une machine", icon: "fa-tractor", classes: availableClassesList, competencies: [
+                { text: "Mise en route de la tondeuse", hasCourse: false },
+                { text: "Mise en route d'un taille haie", hasCourse: false },
+                { text: "Mise en route d'une débroussailleuse", hasCourse: false },
+                { text: "Mise en route d'un motoculteur", hasCourse: false },
+                { text: "Mise en route du broyeur", hasCourse: false },
+                { text: "Mise en route du soufleur", hasCourse: false },
+                { text: "Utilisation d'une meuleuse d'angle", hasCourse: true },
+                { text: "Utilisation de la visseuse / perceuse / perforateur", hasCourse: false },
+                { text: "Utiliser la perceuse à colonne", hasCourse: false }
+            ] },
+            { id: "diverses", title: "Connaissances diverses", icon: "fa-lightbulb", classes: ["2 CAP JP", "2 NJPF", "1 PAP", "T PAP", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: [
+                { text: "Le couple de serrage", hasCourse: true },
+                { text: "Les notices d'emplois", hasCourse: true },
+                { text: "Une vue éclatée", hasCourse: true },
+                { text: "Les engrennages", hasCourse: true },
+                { text: "L'air comprimée", hasCourse: true },
+                { text: "Les rivets et inserts", hasCourse: true },
+                { text: "La visserie", hasCourse: true },
+                { text: "Filletage et taraudage", hasCourse: true }
+            ] },
+            { id: "electricite", title: "Électricité", icon: "fa-bolt", classes: ["1 PAP", "T PAP", "1 PCPH", "T PCPH"], competencies: [
+                { text: "Les notions électrique", hasCourse: true },
+                { text: "Mesure et contrôle résistance / tension", hasCourse: true },
+                { text: "La fabrication de l'energie", hasCourse: true },
+                { text: "Electricité du batiment", hasCourse: true },
+                { text: "Les fusibles", hasCourse: true },
+                { text: "L'éclairage", hasCourse: false },
+                { text: "Les cosses", hasCourse: false },
+                { text: "Les rallonges électriques", hasCourse: false },
+                { text: "Les prises remorques", hasCourse: true }
+            ] },
+            { id: "metallerie", title: "Métallerie", icon: "fa-hammer", classes: ["2 CAP JP", "1 PAP", "T PAP"], competencies: [
+                { text: "Métrologie Tracage", hasCourse: true },
+                { text: "Plan de fabrication", hasCourse: true },
+                { text: "Travail des métaux manuel", hasCourse: false },
+                { text: "Travail des métaux électroportatif", hasCourse: false },
+                { text: "Soudure", hasCourse: true }
+            ] },
+            { id: "irrigation", title: "Irrigation", icon: "fa-droplet", classes: ["2 NJPF", "1 PAP", "T PAP", "1 CAP H", "2 CAP H", "2 PPH", "1 PCPH", "T PCPH"], competencies: [
+                { text: "Les notions hydrauliques", hasCourse: true },
+                { text: "Etude d'un réseau d'irrigation", hasCourse: true },
+                { text: "Les raccords PVC", hasCourse: false },
+                { text: "Les raccords à compressions", hasCourse: false },
+                { text: "L'aspersion/ le goutte à goutte", hasCourse: true },
+                { text: "Les vannes et electrovannes", hasCourse: true },
+                { text: "La programmation des électrovannes", hasCourse: true }
+            ] }
         ];
 
         let currentStudent = null;
@@ -525,7 +608,6 @@
                 alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
             }
         }
-
 
         function exportAppDataJson() {
             const data = getAppData();
@@ -587,8 +669,13 @@
                 localStorage.setItem('paysage_app_data_definitif', JSON.stringify(data));
             } else {
                 data = JSON.parse(data);
+                // Normaliser les données de compétences si elles sont au format string simple
                 data.domains.forEach(d => {
                     if (!d.classes) d.classes = availableClassesList;
+                    d.competencies = d.competencies.map(c => {
+                        if (typeof c === 'string') return { text: c, hasCourse: false };
+                        return c;
+                    });
                 });
             }
             return data;
@@ -766,17 +853,26 @@
             container.innerHTML = "";
 
             let masteredCount = 0;
-            domain.competencies.forEach((comp, idx) => {
+            domain.competencies.forEach((compObj, idx) => {
+                const compText = typeof compObj === 'string' ? compObj : compObj.text;
+                const hasCourse = typeof compObj === 'object' && compObj.hasCourse;
                 const level = studentData[idx] || 0;
                 if (level === 2) masteredCount++;
+
+                const courseBadge = hasCourse 
+                    ? `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold"><i class="fa-solid fa-file-lines text-emerald-600"></i><span>Cours théorique disponible</span></span>`
+                    : '';
 
                 container.innerHTML += `
                     <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div class="flex items-start space-x-3">
                             <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">${idx + 1}</span>
-                            <span class="text-sm font-medium text-slate-800">${comp}</span>
+                            <div class="space-y-1">
+                                <span class="text-sm font-medium text-slate-800 block">${compText}</span>
+                                ${courseBadge}
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center space-x-2 shrink-0">
                             <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 0)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 0 ? 'bg-slate-500 text-white shadow' : 'bg-slate-200 text-slate-600'}">Non vu</button>
                             <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 1)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 1 ? 'bg-amber-500 text-white shadow' : 'bg-amber-100 text-amber-700'}">En cours</button>
                             <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 2)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 2 ? 'bg-nature text-white shadow' : 'bg-green-100 text-green-700'}">Maîtrisé</button>
@@ -1003,11 +1099,20 @@
                 const phBacCheckboxes = generateCheckboxGroup(domain, phBacClasses);
 
                 let compsHtml = '';
-                domain.competencies.forEach((comp, cIdx) => {
+                domain.competencies.forEach((compObj, cIdx) => {
+                    const compText = typeof compObj === 'string' ? compObj : compObj.text;
+                    const hasCourse = typeof compObj === 'object' && compObj.hasCourse;
+
                     compsHtml += `
                         <div class="flex justify-between items-center py-1.5 px-2 bg-white rounded-lg border border-slate-100 text-xs">
-                            <span class="text-slate-700">${cIdx + 1}. ${comp}</span>
-                            <button onclick="removeCompetencyFromDomain('${domain.id}', ${cIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            <span class="text-slate-700 font-medium">${cIdx + 1}. ${compText}</span>
+                            <div class="flex items-center space-x-3">
+                                <label class="inline-flex items-center space-x-1 text-[11px] text-slate-600 cursor-pointer bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                    <input type="checkbox" ${hasCourse ? 'checked' : ''} onchange="toggleCompetencyCourse('${domain.id}', ${cIdx}, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>Cours papier</span>
+                                </label>
+                                <button onclick="removeCompetencyFromDomain('${domain.id}', ${cIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
                         </div>
                     `;
                 });
@@ -1054,14 +1159,32 @@
                         <div class="space-y-1 pt-2 border-t border-slate-200">
                             <span class="font-semibold text-xs text-slate-500 block mb-1">Compétences du domaine (${domain.competencies.length}) :</span>
                             <div class="space-y-1 max-h-40 overflow-y-auto pr-1">${compsHtml}</div>
-                            <div class="flex space-x-2 mt-2">
-                                <input type="text" id="newCompInput_${domain.id}" placeholder="Ajouter une compétence..." class="flex-grow px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white">
-                                <button onclick="addCompetencyToDomain('${domain.id}')" class="bg-nature text-white px-3 py-1.5 rounded-xl text-xs font-semibold">Ajouter</button>
+                            
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2 pt-2 border-t border-slate-100">
+                                <input type="text" id="newCompInput_${domain.id}" placeholder="Intitulé de la compétence..." class="flex-grow px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white">
+                                <label class="inline-flex items-center space-x-1.5 text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl cursor-pointer">
+                                    <input type="checkbox" id="newCompCourse_${domain.id}" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span class="font-semibold text-slate-700">Cours papier</span>
+                                </label>
+                                <button onclick="addCompetencyToDomain('${domain.id}')" class="bg-nature text-white px-4 py-1.5 rounded-xl text-xs font-semibold hover:bg-green-600 transition">Ajouter</button>
                             </div>
                         </div>
                     </div>
                 `;
             });
+        }
+
+        function toggleCompetencyCourse(domainId, cIdx, isChecked) {
+            const data = getAppData();
+            const domain = data.domains.find(d => d.id === domainId);
+            if (domain && domain.competencies[cIdx]) {
+                if (typeof domain.competencies[cIdx] === 'string') {
+                    domain.competencies[cIdx] = { text: domain.competencies[cIdx], hasCourse: isChecked };
+                } else {
+                    domain.competencies[cIdx].hasCourse = isChecked;
+                }
+                saveAppData(data);
+            }
         }
 
         function addNewDomainPrompt() {
@@ -1118,12 +1241,16 @@
 
         function addCompetencyToDomain(domainId) {
             const input = document.getElementById(`newCompInput_${domainId}`);
+            const courseCheck = document.getElementById(`newCompCourse_${domainId}`);
             const val = input.value.trim();
             if (!val) return;
+            
+            const hasCourse = courseCheck ? courseCheck.checked : false;
             const data = getAppData();
             const domain = data.domains.find(d => d.id === domainId);
+            
             if (domain) {
-                domain.competencies.push(val);
+                domain.competencies.push({ text: val, hasCourse: hasCourse });
                 const newIdx = domain.competencies.length - 1;
                 data.students.forEach(st => {
                     if (!data.records[st.name][domainId]) data.records[st.name][domainId] = {};
