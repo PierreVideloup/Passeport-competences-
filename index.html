@@ -245,7 +245,7 @@
                             <i class="fa-solid fa-layer-group mr-1"></i> Gérer les Domaines & Classes
                         </button>
                         <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition">
-                            <i class="fa-solid fa-user-plus mr-1"></i> Inscrire un élève / Importer CSV
+                            <i class="fa-solid fa-user-gear mr-1"></i> Gérer les élèves
                         </button>
                     </div>
                 </div>
@@ -290,7 +290,7 @@
                         <thead>
                             <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
                                 <th class="py-3 px-4 font-semibold">Élève</th>
-                                <th class="py-3 px-4 font-semibold">Filière / Classe</th>
+                                <th class="py-3 px-4 font-semibold">Filière / Classe (Modifiable)</th>
                                 <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
                                 <th class="py-3 px-4 font-semibold">Progression</th>
                                 <th class="py-3 px-4 font-semibold text-right">Actions</th>
@@ -328,7 +328,7 @@
     <!-- MODAL D'AJOUT ET D'IMPORTATION D'ÉLÈVES -->
     <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
-            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Ajouter un ou plusieurs élèves</h3>
+            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Gestion des élèves</h3>
             
             <!-- SELECTION CLASSE POUR LES DEUX MODES -->
             <div>
@@ -471,6 +471,54 @@
         let activeDomainId = null;
         let selectedTeacherClassFilter = "ALL";
 
+        function deleteStudent(studentName) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
+                let data = getAppData();
+                data.students = data.students.filter(s => s.name !== studentName);
+                if (data.records && data.records[studentName]) {
+                    delete data.records[studentName];
+                }
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function changeStudentClass(studentName, newClass) {
+            let data = getAppData();
+            let student = data.students.find(s => s.name === studentName);
+            if (student) {
+                student.studentClass = newClass;
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function deleteEntireClass(className) {
+            if (confirm(`⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la classe "${className}" et TOUS ses élèves ? Cette action est irréversible.`)) {
+                let data = getAppData();
+                const studentsToRemove = data.students.filter(s => s.studentClass === className);
+                
+                studentsToRemove.forEach(st => {
+                    if (data.records && data.records[st.name]) {
+                        delete data.records[st.name];
+                    }
+                });
+
+                data.students = data.students.filter(s => s.studentClass !== className);
+                
+                if (selectedTeacherClassFilter === className) {
+                    selectedTeacherClassFilter = "ALL";
+                }
+
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
+            }
+        }
+
         function getAppData() {
             let data = localStorage.getItem('paysage_app_data_v18');
             if (!data) {
@@ -513,43 +561,6 @@
             if (confirm("Voulez-vous réinitialiser toutes les données de l'application ?")) {
                 localStorage.clear();
                 window.location.reload();
-            }
-        }
-
-        function deleteStudent(studentName) {
-            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
-                let data = getAppData();
-                data.students = data.students.filter(s => s.name !== studentName);
-                if (data.records && data.records[studentName]) {
-                    delete data.records[studentName];
-                }
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-            }
-        }
-
-        function deleteEntireClass(className) {
-            if (confirm(`⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la classe "${className}" et TOUS ses élèves ? Cette action est irréversible.`)) {
-                let data = getAppData();
-                const studentsToRemove = data.students.filter(s => s.studentClass === className);
-                
-                studentsToRemove.forEach(st => {
-                    if (data.records && data.records[st.name]) {
-                        delete data.records[st.name];
-                    }
-                });
-
-                data.students = data.students.filter(s => s.studentClass !== className);
-                
-                if (selectedTeacherClassFilter === className) {
-                    selectedTeacherClassFilter = "ALL";
-                }
-
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
             }
         }
 
@@ -844,13 +855,18 @@
                 });
                 let pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
                 let studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
-                let isAP = apCapClasses.includes(st.studentClass) || apBacClasses.includes(st.studentClass);
-                let badgeColor = isAP ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200';
+                
+                // Générer les options du select pour changer de classe tout en gardant les compétences
+                let classOptions = availableClassesList.map(cls => `<option value="${cls}" ${cls === st.studentClass ? 'selected' : ''}>${cls}</option>`).join('');
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="py-3 px-4 font-semibold text-slate-800">${st.name}</td>
-                        <td class="py-3 px-4"><span class="px-2.5 py-1 text-xs font-bold rounded-lg border ${badgeColor}">${st.studentClass}</span></td>
+                        <td class="py-3 px-4">
+                            <select onchange="changeStudentClass('${st.name}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:border-nature cursor-pointer">
+                                ${classOptions}
+                            </select>
+                        </td>
                         <td class="py-3 px-4">
                             <button onclick="showLinkModal('${st.name}', '${st.studentClass}', '${studentUrl}')" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 shadow-sm flex items-center space-x-1.5 transition">
                                 <i class="fa-solid fa-qrcode text-sm"></i>
