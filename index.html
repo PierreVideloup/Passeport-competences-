@@ -56,10 +56,6 @@
         .col-seen { width: 75px; text-align: center; background-color: rgba(236, 253, 245, 0.4); }
         .col-mastered { width: 95px; text-align: center; background-color: rgba(254, 243, 199, 0.4); }
         .col-prog { width: 155px; text-align: right; }
-        
-        .domains-table th.col-total { background-color: rgba(255, 255, 255, 0.05); }
-        .domains-table th.col-seen { background-color: rgba(255, 255, 255, 0.05); }
-        .domains-table th.col-mastered { background-color: rgba(255, 255, 255, 0.05); }
 
         @media print {
             .no-print { display: none !important; }
@@ -118,16 +114,16 @@
 
         <!-- VUE ÉLÈVE -->
         <div id="studentView" class="space-y-6">
-            <!-- BANDEAUX DE COMPTEURS -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- BANDEAUX DE COMPTEURS AVEC LA NOUVELLE CARTE COURS THÉORIQUES -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div class="bg-teal-50 border border-teal-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
                     <div class="flex items-center space-x-2 text-teal-800 text-xs font-bold uppercase">
                         <i class="fa-solid fa-bullseye text-sm"></i>
                         <span>Compétences visées</span>
                     </div>
                     <div class="flex items-baseline justify-between mt-3">
-                        <span id="totalCount" class="text-3xl font-extrabold text-teal-900">0</span>
-                        <i class="fa-solid fa-list-check text-teal-300 text-2xl"></i>
+                        <span id="totalCount" class="text-2xl lg:text-3xl font-extrabold text-teal-900">0</span>
+                        <i class="fa-solid fa-list-check text-teal-300 text-xl"></i>
                     </div>
                 </div>
 
@@ -137,8 +133,8 @@
                         <span>Compétences vues</span>
                     </div>
                     <div class="flex items-baseline justify-between mt-3">
-                        <span id="seenCount" class="text-3xl font-extrabold text-sky-900">0</span>
-                        <i class="fa-solid fa-eye text-sky-300 text-2xl"></i>
+                        <span id="seenCount" class="text-2xl lg:text-3xl font-extrabold text-sky-900">0</span>
+                        <i class="fa-solid fa-eye text-sky-300 text-xl"></i>
                     </div>
                 </div>
 
@@ -148,12 +144,24 @@
                         <span>Compétences maîtrisées</span>
                     </div>
                     <div class="flex items-baseline justify-between mt-3">
-                        <span id="masteredCount" class="text-3xl font-extrabold text-amber-900">0</span>
-                        <i class="fa-solid fa-award text-amber-300 text-2xl"></i>
+                        <span id="masteredCount" class="text-2xl lg:text-3xl font-extrabold text-amber-900">0</span>
+                        <i class="fa-solid fa-award text-amber-300 text-xl"></i>
                     </div>
                 </div>
 
-                <div class="md:col-span-2 bg-white p-4 rounded-2xl card-shadow flex items-center justify-between border border-slate-100">
+                <!-- CARRE SUPPLÉMENTAIRE : COURS THÉORIQUES X sur Y -->
+                <div class="bg-purple-50 border border-purple-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div class="flex items-center space-x-2 text-purple-800 text-xs font-bold uppercase">
+                        <i class="fa-solid fa-file-lines text-sm"></i>
+                        <span>Cours théoriques</span>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-3">
+                        <span id="coursesRatio" class="text-xl lg:text-2xl font-extrabold text-purple-900">0 / 0</span>
+                        <i class="fa-solid fa-book text-purple-300 text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="sm:col-span-2 lg:col-span-2 bg-white p-4 rounded-2xl card-shadow flex items-center justify-between border border-slate-100">
                     <div>
                         <p class="text-xs font-bold text-slate-500 uppercase">Mon taux de progression</p>
                         <span id="globalPercent" class="text-3xl font-black text-branddark">0%</span>
@@ -221,7 +229,7 @@
                         </button>
                         <div>
                             <h3 id="detailDomainTitle" class="text-lg font-bold text-slate-900">Nom du domaine</h3>
-                            <p class="text-xs text-slate-500">Cliquez sur les boutons pour indiquer votre niveau sur chaque compétence.</p>
+                            <p class="text-xs text-slate-500">Cliquez sur les boutons pour valider vos cours et indiquer votre niveau pratique.</p>
                         </div>
                     </div>
                     <span id="detailDomainBadge" class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">0% validé</span>
@@ -271,7 +279,6 @@
 
                     <!-- BLOCS FILIÈRES ET BOUTONS DE CLASSES -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- FILIÈRE AMÉNAGEMENT PAYSAGER -->
                         <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm space-y-2">
                             <div class="text-[11px] font-bold text-emerald-800 uppercase flex items-center justify-between">
                                 <span><i class="fa-solid fa-tree mr-1 text-emerald-600"></i> Aménagement Paysager</span>
@@ -280,7 +287,6 @@
                             <div class="flex flex-wrap gap-1.5" id="apClassButtons"></div>
                         </div>
 
-                        <!-- FILIÈRE PRODUCTION HORTICOLE -->
                         <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-sm space-y-2">
                             <div class="text-[11px] font-bold text-amber-800 uppercase flex items-center justify-between">
                                 <span><i class="fa-solid fa-seedling mr-1 text-amber-600"></i> Production Horticole</span>
@@ -336,8 +342,6 @@
     <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
             <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Gestion des élèves</h3>
-            
-            <!-- SELECTION CLASSE POUR LES DEUX MODES -->
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe à attribuer :</label>
                 <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-2 bg-white font-medium focus:outline-none focus:border-nature">
@@ -362,7 +366,6 @@
                 </select>
             </div>
 
-            <!-- OPTION CASE À COCHER : SAISIE MANUELLE OU IMPORT CSV PRONOTE -->
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                 <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer">
                     <input type="checkbox" id="csvImportCheck" onchange="toggleCsvImportMode(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4">
@@ -370,13 +373,11 @@
                 </label>
             </div>
 
-            <!-- MODE 1 : SAISIE MANUELLE D'UN ÉLÈVE -->
             <div id="singleStudentSection">
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom :</label>
                 <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature">
             </div>
 
-            <!-- MODE 2 : IMPORTER FICHES CSV PRONOTE -->
             <div id="csvImportSection" class="hidden space-y-2">
                 <label class="block text-xs font-semibold text-slate-600">Sélectionner votre fichier d'export Pronote (.csv) :</label>
                 <input type="file" id="csvFileInput" accept=".csv, .txt" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
@@ -390,7 +391,7 @@
         </div>
     </div>
 
-    <!-- MODAL GENERATEUR DE QR CODE AVEC TELECHARGEMENT -->
+    <!-- MODAL GENERATEUR DE QR CODE -->
     <div id="linkModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -444,8 +445,7 @@
                 </button>
             </div>
 
-            <div id="manageDomainsContainer" class="flex-grow overflow-y-auto space-y-4 pr-1">
-            </div>
+            <div id="manageDomainsContainer" class="flex-grow overflow-y-auto space-y-4 pr-1"></div>
         </div>
     </div>
 
@@ -463,7 +463,6 @@
             ...phBacClasses
         ];
 
-        // Format normalisé des compétences : { text: "Nom de la compétence", hasCourse: true/false }
         const defaultDomains = [
             { id: "atelier", title: "Les bases d'un atelier", icon: "fa-wrench", classes: availableClassesList, competencies: [
                 { text: "Je me repère dans l'atelier", hasCourse: true },
@@ -562,12 +561,11 @@
         let selectedTeacherClassFilter = "ALL";
 
         function deleteStudent(studentName) {
-            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données de compétences.`)) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données.`)) {
                 let data = getAppData();
                 data.students = data.students.filter(s => s.name !== studentName);
-                if (data.records && data.records[studentName]) {
-                    delete data.records[studentName];
-                }
+                if (data.records && data.records[studentName]) delete data.records[studentName];
+                if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
@@ -591,21 +589,17 @@
                 const studentsToRemove = data.students.filter(s => s.studentClass === className);
                 
                 studentsToRemove.forEach(st => {
-                    if (data.records && data.records[st.name]) {
-                        delete data.records[st.name];
-                    }
+                    if (data.records && data.records[st.name]) delete data.records[st.name];
+                    if (data.courseRecords && data.courseRecords[st.name]) delete data.courseRecords[st.name];
                 });
 
                 data.students = data.students.filter(s => s.studentClass !== className);
-                
-                if (selectedTeacherClassFilter === className) {
-                    selectedTeacherClassFilter = "ALL";
-                }
+                if (selectedTeacherClassFilter === className) selectedTeacherClassFilter = "ALL";
 
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
-                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés avec succès.`);
+                alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés.`);
             }
         }
 
@@ -633,7 +627,7 @@
                                 window.location.reload();
                             }
                         } else {
-                            alert("Format de fichier de sauvegarde invalide.");
+                            alert("Format de fichier invalide.");
                         }
                     } catch (err) {
                         alert("Erreur lors de la lecture du fichier JSON.");
@@ -655,21 +649,25 @@
                         { name: "Emma", studentClass: "1 CAP H" },
                         { name: "Hugo", studentClass: "T PCPH" }
                     ],
-                    records: {}
+                    records: {},
+                    courseRecords: {}
                 };
                 data.students.forEach(st => {
                     data.records[st.name] = {};
+                    data.courseRecords[st.name] = {};
                     data.domains.forEach(domain => {
                         data.records[st.name][domain.id] = {};
+                        data.courseRecords[st.name][domain.id] = {};
                         domain.competencies.forEach((comp, idx) => {
                             data.records[st.name][domain.id][idx] = 0;
+                            data.courseRecords[st.name][domain.id][idx] = false;
                         });
                     });
                 });
                 localStorage.setItem('paysage_app_data_definitif', JSON.stringify(data));
             } else {
                 data = JSON.parse(data);
-                // Normaliser les données de compétences si elles sont au format string simple
+                if (!data.courseRecords) data.courseRecords = {};
                 data.domains.forEach(d => {
                     if (!d.classes) d.classes = availableClassesList;
                     d.competencies = d.competencies.map(c => {
@@ -747,17 +745,27 @@
         function renderDashboard() {
             const data = getAppData();
             const studentData = data.records[currentStudent] || {};
+            const studentCourseData = data.courseRecords[currentStudent] || {};
             const studentDomains = getStudentActiveDomains();
 
             let totalComps = 0, seenComps = 0, masteredComps = 0;
+            let totalCoursesTarget = 0, totalCoursesAcquired = 0;
 
             studentDomains.forEach(domain => {
                 const compMap = studentData[domain.id] || {};
-                domain.competencies.forEach((_, idx) => {
+                const courseMap = studentCourseData[domain.id] || {};
+
+                domain.competencies.forEach((compObj, idx) => {
                     const val = compMap[idx] || 0;
                     totalComps++;
                     if (val === 1) seenComps++;
                     if (val === 2) masteredComps++;
+
+                    const hasCourse = typeof compObj === 'object' && compObj.hasCourse;
+                    if (hasCourse) {
+                        totalCoursesTarget++;
+                        if (courseMap[idx]) totalCoursesAcquired++;
+                    }
                 });
             });
 
@@ -766,6 +774,7 @@
             document.getElementById('totalCount').innerText = totalComps;
             document.getElementById('seenCount').innerText = seenComps;
             document.getElementById('masteredCount').innerText = masteredComps;
+            document.getElementById('coursesRatio').innerText = `${totalCoursesAcquired} / ${totalCoursesTarget}`;
             document.getElementById('globalPercent').innerText = overallScore + '%';
             
             const dashoffset = 163.36 - (163.36 * overallScore) / 100;
@@ -781,7 +790,7 @@
             tbody.innerHTML = "";
 
             if (studentDomains.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">Aucun domaine assigné à cette classe pour le moment.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">Aucun domaine assigné à cette classe.</td></tr>`;
                 return;
             }
 
@@ -843,539 +852,4 @@
             if (!activeDomainId) return;
             const data = getAppData();
             const domain = data.domains.find(d => d.id === activeDomainId);
-            if (!domain) return;
-
-            if (!data.records[currentStudent][activeDomainId]) {
-                data.records[currentStudent][activeDomainId] = {};
-            }
-            const studentData = data.records[currentStudent][activeDomainId];
-            const container = document.getElementById('competenciesList');
-            container.innerHTML = "";
-
-            let masteredCount = 0;
-            domain.competencies.forEach((compObj, idx) => {
-                const compText = typeof compObj === 'string' ? compObj : compObj.text;
-                const hasCourse = typeof compObj === 'object' && compObj.hasCourse;
-                const level = studentData[idx] || 0;
-                if (level === 2) masteredCount++;
-
-                const courseBadge = hasCourse 
-                    ? `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold"><i class="fa-solid fa-file-lines text-emerald-600"></i><span>Cours théorique disponible</span></span>`
-                    : '';
-
-                container.innerHTML += `
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">${idx + 1}</span>
-                            <div class="space-y-1">
-                                <span class="text-sm font-medium text-slate-800 block">${compText}</span>
-                                ${courseBadge}
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2 shrink-0">
-                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 0)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 0 ? 'bg-slate-500 text-white shadow' : 'bg-slate-200 text-slate-600'}">Non vu</button>
-                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 1)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 1 ? 'bg-amber-500 text-white shadow' : 'bg-amber-100 text-amber-700'}">En cours</button>
-                            <button onclick="setCompetenceLevel('${activeDomainId}', ${idx}, 2)" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${level === 2 ? 'bg-nature text-white shadow' : 'bg-green-100 text-green-700'}">Maîtrisé</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            const pct = domain.competencies.length > 0 ? Math.round((masteredCount / domain.competencies.length) * 100) : 0;
-            document.getElementById('detailDomainBadge').innerText = pct + '% validé';
-            renderDashboard();
-        }
-
-        function setCompetenceLevel(domainId, compIdx, level) {
-            const data = getAppData();
-            if (!data.records[currentStudent][domainId]) data.records[currentStudent][domainId] = {};
-            data.records[currentStudent][domainId][compIdx] = level;
-            saveAppData(data);
-            renderCompetenciesList();
-        }
-
-        function renderTeacherFilterButtons() {
-            const data = getAppData();
-            const apContainer = document.getElementById('apClassButtons');
-            const phContainer = document.getElementById('phClassButtons');
-            
-            const apClasses = [...apCapClasses, ...apBacClasses];
-            const phClasses = [...phCapClasses, ...phBacClasses];
-
-            let apHtml = `<button onclick="selectTeacherFilter('ALL')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border ${selectedTeacherClassFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">Toutes les classes</button>`;
-            let phHtml = '';
-
-            apClasses.forEach(cls => {
-                const count = data.students.filter(s => s.studentClass === cls).length;
-                const active = selectedTeacherClassFilter === cls;
-                apHtml += `
-                    <button onclick="selectTeacherFilter('${cls}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'}">
-                        <span>${cls}</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${active ? 'bg-emerald-800 text-white' : 'bg-emerald-200 text-emerald-900'}">${count}</span>
-                    </button>
-                `;
-            });
-
-            phClasses.forEach(cls => {
-                const count = data.students.filter(s => s.studentClass === cls).length;
-                const active = selectedTeacherClassFilter === cls;
-                phHtml += `
-                    <button onclick="selectTeacherFilter('${cls}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border flex items-center gap-1.5 ${active ? 'bg-amber-600 text-white border-amber-600 shadow' : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'}">
-                        <span>${cls}</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${active ? 'bg-amber-800 text-white' : 'bg-amber-200 text-amber-900'}">${count}</span>
-                    </button>
-                `;
-            });
-
-            apContainer.innerHTML = apHtml;
-            phContainer.innerHTML = phHtml;
-
-            const deleteContainer = document.getElementById('deleteClassActionContainer');
-            if (deleteContainer) {
-                if (selectedTeacherClassFilter !== 'ALL' && selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
-                    const studentCountInClass = data.students.filter(s => s.studentClass === selectedTeacherClassFilter).length;
-                    deleteContainer.innerHTML = `
-                        <button onclick="deleteEntireClass('${selectedTeacherClassFilter}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Supprimer la classe ${selectedTeacherClassFilter} (${studentCountInClass} élève${studentCountInClass > 1 ? 's' : ''})</span>
-                        </button>
-                    `;
-                } else {
-                    deleteContainer.innerHTML = '';
-                }
-            }
-        }
-
-        function selectTeacherFilter(filter) {
-            selectedTeacherClassFilter = filter;
-            renderTeacherFilterButtons();
-            renderTeacherTable();
-        }
-
-        function renderTeacherTable() {
-            const data = getAppData();
-            const tbody = document.getElementById('teacherTableBody');
-            tbody.innerHTML = "";
-            const baseUrl = window.location.href.split('?')[0];
-
-            let filteredStudents = data.students;
-
-            if (selectedTeacherClassFilter === 'ALL_AP') {
-                filteredStudents = data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
-            } else if (selectedTeacherClassFilter === 'ALL_PH') {
-                filteredStudents = data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
-            } else if (selectedTeacherClassFilter !== 'ALL') {
-                filteredStudents = data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
-            }
-
-            const countEl = document.getElementById('selectedClassCount');
-            if (countEl) {
-                countEl.innerText = `${filteredStudents.length} élève(s) affiché(s)`;
-            }
-
-            if (filteredStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe pour le moment.</td></tr>`;
-                return;
-            }
-
-            filteredStudents.forEach(st => {
-                let total = 0, mastered = 0;
-                const studentDomains = data.domains.filter(d => !d.classes || d.classes.includes(st.studentClass));
-
-                studentDomains.forEach(domain => {
-                    const compMap = data.records[st.name][domain.id] || {};
-                    domain.competencies.forEach((_, idx) => {
-                        const val = compMap[idx] || 0;
-                        total++;
-                        if (val === 2) mastered++;
-                    });
-                });
-                let pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
-                let studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
-                
-                let classOptions = availableClassesList.map(cls => `<option value="${cls}" ${cls === st.studentClass ? 'selected' : ''}>${cls}</option>`).join('');
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 px-4 font-semibold text-slate-800">${st.name}</td>
-                        <td class="py-3 px-4">
-                            <select onchange="changeStudentClass('${st.name}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:border-nature cursor-pointer">
-                                ${classOptions}
-                            </select>
-                        </td>
-                        <td class="py-3 px-4">
-                            <button onclick="showLinkModal('${st.name}', '${st.studentClass}', '${studentUrl}')" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 shadow-sm flex items-center space-x-1.5 transition">
-                                <i class="fa-solid fa-qrcode text-sm"></i>
-                                <span>Générer QR</span>
-                            </button>
-                        </td>
-                        <td class="py-3 px-4"><div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-nature h-full" style="width: ${pct}%"></div></div></td>
-                        <td class="py-3 px-4 text-right space-x-1">
-                            <button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg" title="Voir le profil">Voir</button>
-                            <button onclick="deleteStudent('${st.name}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs rounded-lg transition" title="Supprimer l'élève">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function showLinkModal(name, studentClass, url) {
-            document.getElementById('modalStudentName').innerText = name;
-            document.getElementById('modalStudentClassBadge').innerText = "Filière / Classe : " + studentClass;
-            document.getElementById('modalStudentUrl').value = url;
-            
-            const qrContainer = document.getElementById('qrcodeContainer');
-            qrContainer.innerHTML = "";
-            
-            new QRCode(qrContainer, {
-                text: url,
-                width: 160,
-                height: 160,
-                colorDark : "#0c3547",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-
-            document.getElementById('linkModal').classList.remove('hidden');
-        }
-
-        function copyStudentUrl() {
-            const input = document.getElementById('modalStudentUrl');
-            input.select();
-            document.execCommand('copy');
-            alert("Lien copié dans le presse-papier !");
-        }
-
-        function downloadQRCode() {
-            const img = document.querySelector('#qrcodeContainer img');
-            const studentName = document.getElementById('modalStudentName').innerText || 'eleve';
-            if (img && img.src) {
-                const link = document.createElement('a');
-                link.href = img.src;
-                link.download = `QR_Code_${studentName.replace(/\s+/g, '_')}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                alert("Le QR Code est en cours de création, réessayez dans un instant.");
-            }
-        }
-
-        function openManageDomainsModal() {
-            renderManageDomainsList();
-            document.getElementById('manageDomainsModal').classList.remove('hidden');
-        }
-
-        function closeManageDomainsModal() {
-            document.getElementById('manageDomainsModal').classList.add('hidden');
-            renderDashboard();
-        }
-
-        function generateCheckboxGroup(domain, classesArray) {
-            let html = '';
-            classesArray.forEach(cls => {
-                const isChecked = domain.classes && domain.classes.includes(cls) ? 'checked' : '';
-                html += `
-                    <label class="inline-flex items-center space-x-1.5 text-xs bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
-                        <input type="checkbox" ${isChecked} onchange="toggleDomainClass('${domain.id}', '${cls}', this.checked)" class="rounded text-nature focus:ring-nature">
-                        <span class="font-semibold text-slate-700">${cls}</span>
-                    </label>
-                `;
-            });
-            return html;
-        }
-
-        function renderManageDomainsList() {
-            const data = getAppData();
-            const container = document.getElementById('manageDomainsContainer');
-            container.innerHTML = "";
-
-            data.domains.forEach((domain, dIdx) => {
-                const apCapCheckboxes = generateCheckboxGroup(domain, apCapClasses);
-                const apBacCheckboxes = generateCheckboxGroup(domain, apBacClasses);
-                const phCapCheckboxes = generateCheckboxGroup(domain, phCapClasses);
-                const phBacCheckboxes = generateCheckboxGroup(domain, phBacClasses);
-
-                let compsHtml = '';
-                domain.competencies.forEach((compObj, cIdx) => {
-                    const compText = typeof compObj === 'string' ? compObj : compObj.text;
-                    const hasCourse = typeof compObj === 'object' && compObj.hasCourse;
-
-                    compsHtml += `
-                        <div class="flex justify-between items-center py-1.5 px-2 bg-white rounded-lg border border-slate-100 text-xs">
-                            <span class="text-slate-700 font-medium">${cIdx + 1}. ${compText}</span>
-                            <div class="flex items-center space-x-3">
-                                <label class="inline-flex items-center space-x-1 text-[11px] text-slate-600 cursor-pointer bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                                    <input type="checkbox" ${hasCourse ? 'checked' : ''} onchange="toggleCompetencyCourse('${domain.id}', ${cIdx}, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
-                                    <span>Cours papier</span>
-                                </label>
-                                <button onclick="removeCompetencyFromDomain('${domain.id}', ${cIdx})" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML += `
-                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                            <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <input type="text" value="${domain.title}" onchange="updateDomainTitle('${domain.id}', this.value)" class="font-bold text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-xl w-full sm:w-72 focus:outline-none focus:border-nature">
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="deleteEntireDomain('${domain.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl font-semibold transition"><i class="fa-solid fa-trash mr-1"></i> Supprimer le domaine</button>
-                            </div>
-                        </div>
-
-                        <div class="space-y-3 pt-1">
-                            <span class="font-bold text-xs text-slate-600 block">Classes ayant accès à ce domaine :</span>
-                            
-                            <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 space-y-2">
-                                <span class="text-[11px] font-bold text-emerald-800 uppercase block"><i class="fa-solid fa-tree mr-1"></i> Aménagement Paysager</span>
-                                <div>
-                                    <span class="text-[10px] font-semibold text-emerald-700 block mb-1">CAP JP :</span>
-                                    <div class="flex flex-wrap gap-2">${apCapCheckboxes}</div>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-semibold text-emerald-700 block mb-1">2 NJPF & BAC Pro (PAP) :</span>
-                                    <div class="flex flex-wrap gap-2">${apBacCheckboxes}</div>
-                                </div>
-                            </div>
-
-                            <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-100 space-y-2">
-                                <span class="text-[11px] font-bold text-amber-800 uppercase block"><i class="fa-solid fa-seedling mr-1"></i> Production Horticole</span>
-                                <div>
-                                    <span class="text-[10px] font-semibold text-amber-700 block mb-1">CAP H :</span>
-                                    <div class="flex flex-wrap gap-2">${phCapCheckboxes}</div>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-semibold text-amber-700 block mb-1">2 PPH & BAC Pro (PCPH) :</span>
-                                    <div class="flex flex-wrap gap-2">${phBacCheckboxes}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1 pt-2 border-t border-slate-200">
-                            <span class="font-semibold text-xs text-slate-500 block mb-1">Compétences du domaine (${domain.competencies.length}) :</span>
-                            <div class="space-y-1 max-h-40 overflow-y-auto pr-1">${compsHtml}</div>
-                            
-                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2 pt-2 border-t border-slate-100">
-                                <input type="text" id="newCompInput_${domain.id}" placeholder="Intitulé de la compétence..." class="flex-grow px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white">
-                                <label class="inline-flex items-center space-x-1.5 text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl cursor-pointer">
-                                    <input type="checkbox" id="newCompCourse_${domain.id}" class="rounded text-emerald-600 focus:ring-emerald-500">
-                                    <span class="font-semibold text-slate-700">Cours papier</span>
-                                </label>
-                                <button onclick="addCompetencyToDomain('${domain.id}')" class="bg-nature text-white px-4 py-1.5 rounded-xl text-xs font-semibold hover:bg-green-600 transition">Ajouter</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function toggleCompetencyCourse(domainId, cIdx, isChecked) {
-            const data = getAppData();
-            const domain = data.domains.find(d => d.id === domainId);
-            if (domain && domain.competencies[cIdx]) {
-                if (typeof domain.competencies[cIdx] === 'string') {
-                    domain.competencies[cIdx] = { text: domain.competencies[cIdx], hasCourse: isChecked };
-                } else {
-                    domain.competencies[cIdx].hasCourse = isChecked;
-                }
-                saveAppData(data);
-            }
-        }
-
-        function addNewDomainPrompt() {
-            const title = prompt("Nom du nouveau domaine :");
-            if (!title) return;
-            const data = getAppData();
-            const newId = 'domain_' + Date.now();
-            data.domains.push({
-                id: newId,
-                title: title,
-                icon: "fa-book-open",
-                classes: availableClassesList,
-                competencies: []
-            });
-            data.students.forEach(st => {
-                if (!data.records[st.name]) data.records[st.name] = {};
-                data.records[st.name][newId] = {};
-            });
-            saveAppData(data);
-            renderManageDomainsList();
-        }
-
-        function updateDomainTitle(domainId, newTitle) {
-            const data = getAppData();
-            const domain = data.domains.find(d => d.id === domainId);
-            if (domain) {
-                domain.title = newTitle;
-                saveAppData(data);
-            }
-        }
-
-        function deleteEntireDomain(domainId) {
-            if (confirm("Voulez-vous vraiment supprimer ce domaine et toutes ses compétences pour l'ensemble des classes ?")) {
-                const data = getAppData();
-                data.domains = data.domains.filter(d => d.id !== domainId);
-                saveAppData(data);
-                renderManageDomainsList();
-            }
-        }
-
-        function toggleDomainClass(domainId, className, isChecked) {
-            const data = getAppData();
-            const domain = data.domains.find(d => d.id === domainId);
-            if (domain) {
-                if (!domain.classes) domain.classes = [];
-                if (isChecked) {
-                    if (!domain.classes.includes(className)) domain.classes.push(className);
-                } else {
-                    domain.classes = domain.classes.filter(c => c !== className);
-                }
-                saveAppData(data);
-            }
-        }
-
-        function addCompetencyToDomain(domainId) {
-            const input = document.getElementById(`newCompInput_${domainId}`);
-            const courseCheck = document.getElementById(`newCompCourse_${domainId}`);
-            const val = input.value.trim();
-            if (!val) return;
-            
-            const hasCourse = courseCheck ? courseCheck.checked : false;
-            const data = getAppData();
-            const domain = data.domains.find(d => d.id === domainId);
-            
-            if (domain) {
-                domain.competencies.push({ text: val, hasCourse: hasCourse });
-                const newIdx = domain.competencies.length - 1;
-                data.students.forEach(st => {
-                    if (!data.records[st.name][domainId]) data.records[st.name][domainId] = {};
-                    data.records[st.name][domainId][newIdx] = 0;
-                });
-                saveAppData(data);
-                renderManageDomainsList();
-            }
-        }
-
-        function removeCompetencyFromDomain(domainId, cIdx) {
-            if (confirm("Supprimer cette compétence ?")) {
-                const data = getAppData();
-                const domain = data.domains.find(d => d.id === domainId);
-                if (domain) {
-                    domain.competencies.splice(cIdx, 1);
-                    saveAppData(data);
-                    renderManageDomainsList();
-                }
-            }
-        }
-
-        function openAddStudentModal() { 
-            document.getElementById('csvImportCheck').checked = false;
-            toggleCsvImportMode(false);
-            document.getElementById('newStudentName').value = "";
-            document.getElementById('csvFileInput').value = "";
-            document.getElementById('addStudentModal').classList.remove('hidden'); 
-        }
-
-        function closeAddStudentModal() { 
-            document.getElementById('addStudentModal').classList.add('hidden'); 
-        }
-
-        function toggleCsvImportMode(isCsv) {
-            const singleSection = document.getElementById('singleStudentSection');
-            const csvSection = document.getElementById('csvImportSection');
-            if (isCsv) {
-                singleSection.classList.add('hidden');
-                csvSection.classList.remove('hidden');
-            } else {
-                singleSection.classList.remove('hidden');
-                csvSection.classList.add('hidden');
-            }
-        }
-
-        function confirmAddStudent() {
-            const sClass = document.getElementById('newStudentClass').value;
-            const isCsvMode = document.getElementById('csvImportCheck').checked;
-
-            if (isCsvMode) {
-                const fileInput = document.getElementById('csvFileInput');
-                if (!fileInput.files || fileInput.files.length === 0) {
-                    return alert("Veuillez sélectionner un fichier CSV Pronote.");
-                }
-
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = function(e) {
-                    const content = e.target.result;
-                    parseAndImportCSV(content, sClass);
-                };
-
-                reader.readAsText(file, 'UTF-8');
-            } else {
-                const name = document.getElementById('newStudentName').value.trim();
-                if (!name) return alert("Veuillez saisir au moins le Nom et Prénom de l'élève.");
-                
-                const data = getAppData();
-                if (data.students.some(s => s.name.toLowerCase() === name.toLowerCase())) {
-                    return alert("Un élève porte déjà ce nom.");
-                }
-
-                addSingleStudentToData(data, name, sClass);
-                saveAppData(data);
-                closeAddStudentModal();
-                renderTeacherFilterButtons();
-                renderTeacherTable();
-            }
-        }
-
-        function addSingleStudentToData(data, name, studentClass) {
-            data.students.push({ name: name, studentClass: studentClass });
-            data.records[name] = {};
-            data.domains.forEach(d => {
-                data.records[name][d.id] = {};
-                d.competencies.forEach((_, idx) => {
-                    data.records[name][d.id][idx] = 0;
-                });
-            });
-        }
-
-        function parseAndImportCSV(text, targetClass) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length <= 1) {
-                return alert("Le fichier CSV est vide ou invalide.");
-            }
-
-            const data = getAppData();
-            let countAdded = 0;
-
-            lines.forEach((line, index) => {
-                if (index === 0 || !line.trim()) return;
-                
-                const cols = line.split(';');
-                if (cols.length > 0) {
-                    let rawName = cols[0].replace(/"/g, '').trim();
-                    if (rawName && rawName !== 'Élèves') {
-                        if (!data.students.some(s => s.name.toLowerCase() === rawName.toLowerCase())) {
-                            addSingleStudentToData(data, rawName, targetClass);
-                            countAdded++;
-                        }
-                    }
-                }
-            });
-
-            saveAppData(data);
-            closeAddStudentModal();
-            renderTeacherFilterButtons();
-            renderTeacherTable();
-            alert(`${countAdded} élève(s) ont été importé(s) avec succès dans la classe ${targetClass} !`);
-        }
-
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-</body>
-</html>
+            if (!
