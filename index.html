@@ -526,7 +526,7 @@
 
         let currentStudent = null;
         let activeDomainId = null;
-        let selectedTeacherClassFilter = "ALL";
+        let selectedTeacherClassFilter = "ALL_AP";
 
         function deleteStudent(studentName) {
             if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action effacera aussi toutes ses données.`)) {
@@ -562,7 +562,7 @@
                 });
 
                 data.students = data.students.filter(s => s.studentClass !== className);
-                if (selectedTeacherClassFilter === className) selectedTeacherClassFilter = "ALL";
+                if (selectedTeacherClassFilter === className) selectedTeacherClassFilter = "ALL_AP";
 
                 saveAppData(data);
                 renderTeacherFilterButtons();
@@ -875,7 +875,7 @@
             const apClasses = [...apCapClasses, ...apBacClasses];
             const phClasses = [...phCapClasses, ...phBacClasses];
 
-            let apHtml = `<button onclick="selectTeacherFilter('ALL')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border ${selectedTeacherClassFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">Toutes les classes</button>`;
+            let apHtml = '';
             let phHtml = '';
 
             apClasses.forEach(cls => {
@@ -905,7 +905,7 @@
 
             const deleteContainer = document.getElementById('deleteClassActionContainer');
             if (deleteContainer) {
-                if (selectedTeacherClassFilter !== 'ALL' && selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
+                if (selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
                     const studentCountInClass = data.students.filter(s => s.studentClass === selectedTeacherClassFilter).length;
                     deleteContainer.innerHTML = `
                         <button onclick="deleteEntireClass('${selectedTeacherClassFilter}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
@@ -937,7 +937,7 @@
                 filteredStudents = data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
             } else if (selectedTeacherClassFilter === 'ALL_PH') {
                 filteredStudents = data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
-            } else if (selectedTeacherClassFilter !== 'ALL') {
+            } else {
                 filteredStudents = data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
             }
 
