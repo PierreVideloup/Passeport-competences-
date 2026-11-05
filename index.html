@@ -32,31 +32,14 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #F8FAF9; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        
-        .domains-table-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .domains-table {
-            width: 100%;
-            min-width: 620px;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        
-        .domains-table th, .domains-table td {
-            vertical-align: middle;
-            padding: 12px 14px;
-        }
-        
+        .domains-table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .domains-table { width: 100%; min-width: 620px; border-collapse: collapse; table-layout: fixed; }
+        .domains-table th, .domains-table td { vertical-align: middle; padding: 12px 14px; }
         .col-domain { width: 220px; text-align: left; }
         .col-total { width: 75px; text-align: center; background-color: rgba(241, 245, 249, 0.4); }
         .col-seen { width: 75px; text-align: center; background-color: rgba(236, 253, 245, 0.4); }
         .col-mastered { width: 95px; text-align: center; background-color: rgba(254, 243, 199, 0.4); }
         .col-prog { width: 155px; text-align: right; }
-
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -80,7 +63,7 @@
             </div>
 
             <!-- INFOS ÉLÈVE REMPLIES AUTO -->
-            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 w-full lg:w-96 space-y-1.5 text-xs text-slate-100">
+            <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/20 w-full lg:w-96 space-y-1.5 text-xs text-slate-100">
                 <div class="flex justify-between border-b border-white/10 pb-1">
                     <span class="text-slate-300"><i class="fa-solid fa-user mr-2"></i>Nom :</span>
                     <span id="infoName" class="font-bold text-white">—</span>
@@ -114,7 +97,6 @@
 
         <!-- VUE ÉLÈVE -->
         <div id="studentView" class="space-y-6">
-            <!-- BANDEAUX DE COMPTEURS AVEC LA CARTE COURS THÉORIQUES -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div class="bg-teal-50 border border-teal-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
                     <div class="flex items-center space-x-2 text-teal-800 text-xs font-bold uppercase">
@@ -149,7 +131,6 @@
                     </div>
                 </div>
 
-                <!-- CARRE : COURS THÉORIQUES X sur Y -->
                 <div class="bg-purple-50 border border-purple-100 p-4 rounded-2xl card-shadow flex flex-col justify-between">
                     <div class="flex items-center space-x-2 text-purple-800 text-xs font-bold uppercase">
                         <i class="fa-solid fa-file-lines text-sm"></i>
@@ -255,13 +236,6 @@
                         <button onclick="openAddStudentModal()" class="bg-nature hover:bg-green-600 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition">
                             <i class="fa-solid fa-user-gear mr-1"></i> Gérer les élèves
                         </button>
-                        <button onclick="exportAppDataJson()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-2.5 rounded-xl shadow transition" title="Télécharger une sauvegarde JSON">
-                            <i class="fa-solid fa-download mr-1"></i> Sauvegarder
-                        </button>
-                        <label class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-2.5 rounded-xl shadow transition cursor-pointer" title="Restaurer une sauvegarde JSON">
-                            <i class="fa-solid fa-upload mr-1"></i> Restaurer
-                            <input type="file" accept=".json" onchange="importAppDataJson(event)" class="hidden">
-                        </label>
                     </div>
                 </div>
 
@@ -277,7 +251,6 @@
                         </div>
                     </div>
 
-                    <!-- BLOCS FILIÈRES ET BOUTONS DE CLASSES -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm space-y-2">
                             <div class="text-[11px] font-bold text-emerald-800 uppercase flex items-center justify-between">
@@ -456,12 +429,7 @@
         const phCapClasses = ["1 CAP H", "2 CAP H"];
         const phBacClasses = ["2 PPH", "1 PCPH", "T PCPH"];
 
-        const availableClassesList = [
-            ...apCapClasses,
-            ...apBacClasses,
-            ...phCapClasses,
-            ...phBacClasses
-        ];
+        const availableClassesList = [...apCapClasses, ...apBacClasses, ...phCapClasses, ...phBacClasses];
 
         const defaultDomains = [
             { id: "atelier", title: "Les bases d'un atelier", icon: "fa-wrench", classes: availableClassesList, competencies: [
@@ -600,39 +568,6 @@
                 renderTeacherFilterButtons();
                 renderTeacherTable();
                 alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés.`);
-            }
-        }
-
-        function exportAppDataJson() {
-            const data = getAppData();
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "sauvegarde_passeport_competences_" + new Date().toISOString().slice(0,10) + ".json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importAppDataJson(event) {
-            const fileReader = new FileReader();
-            if (event.target.files && event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0], "UTF-8");
-                fileReader.onload = function(e) {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData && importedData.students && importedData.domains) {
-                            if (confirm("Voulez-vous restaurer ces données ? Cela remplacera la liste actuelle par la sauvegarde.")) {
-                                saveAppData(importedData);
-                                window.location.reload();
-                            }
-                        } else {
-                            alert("Format de fichier invalide.");
-                        }
-                    } catch (err) {
-                        alert("Erreur lors de la lecture du fichier JSON.");
-                    }
-                };
             }
         }
 
