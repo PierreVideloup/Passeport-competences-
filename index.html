@@ -569,9 +569,15 @@
         let selectedTeacherClassFilter = "ALL_AP";
         let activeStudentActionTab = "add";
 
+        // Fonction utilitaire pour normaliser les noms (remplace apostrophes typographiques par des apostrophes droites)
+        function normalizeStudentName(name) {
+            if (!name) return "";
+            return name.trim().replace(/[’‘`]/g, "'");
+        }
+
         function changeStudentClass(studentName, newClass) {
             let data = getAppData();
-            let student = data.students.find(s => s.name === studentName);
+            let student = data.students.find(s => normalizeStudentName(s.name) === normalizeStudentName(studentName));
             if (student) {
                 student.studentClass = newClass;
                 saveAppData(data);
@@ -581,11 +587,14 @@
         }
 
         function deleteSingleStudent(studentName) {
-            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ?Cette action est irréversible.`)) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ? Cette action est irréversible.`)) {
                 let data = getAppData();
-                data.students = data.students.filter(s => s.name !== studentName);
+                const normName = normalizeStudentName(studentName);
+                data.students = data.students.filter(s => normalizeStudentName(s.name) !== normName);
                 if (data.records && data.records[studentName]) delete data.records[studentName];
+                if (data.records && data.records[normName]) delete data.records[normName];
                 if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
+                if (data.courseRecords && data.courseRecords[normName]) delete data.courseRecords[normName];
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
@@ -668,15 +677,29 @@
 
         function initApp() {
             const urlParams = new URLSearchParams(window.location.search);
-            const eleveParam = urlParams.get('eleve');
+            let eleveParam = urlParams.get('eleve');
             const teacherParam = urlParams.get('teacher');
             const data = getAppData();
 
+            if (eleveParam) {
+                eleveParam = decodeURIComponent(eleveParam);
+                const matchedStudent = data.students.find(s => 
+                    s.name === eleveParam || 
+                    normalizeStudentName(s.name) === normalizeStudentName(eleveParam)
+                );
+                if (matchedStudent) {
+                    currentStudent = matchedStudent.name;
+                    showStudentView();
+                    return;
+                }
+            }
+
             if (teacherParam === 'true') {
                 switchToTeacher();
-            } else if (eleveParam && data.students.some(s => s.name === eleveParam)) {
-                currentStudent = eleveParam;
-                showStudentView();
+            } else if (eleveParam) {
+                // Si l'élève demandé n'est pas trouvé, affiche une alerte claire au lieu de rediriger silencieusement vers l'espace enseignant
+                alert(`⚠️ Élève introuvable : "${eleveParam}". Veuillez vérifier ou régénérer son QR code.`);
+                switchToTeacher();
             } else {
                 currentStudent = data.students[0].name;
                 switchToTeacher();
@@ -1045,7 +1068,6 @@
             const hiddenContainer = document.getElementById('hiddenQrContainer');
             hiddenContainer.innerHTML = "";
 
-            // Génération dynamique d'une fenêtre d'impression optimisée PDF
             const printWin = window.open('', '_blank');
             if (!printWin) {
                 return alert("Veuillez autoriser les fenêtres surgissantes (pop-ups) pour télécharger le PDF.");
@@ -1056,7 +1078,6 @@
             if (selectedTeacherClassFilter === 'ALL_PH') classTitle = "Toutes les classes Production Horticole";
 
             let cardsHtml = "";
-            let generatedImagesCount = 0;
 
             filteredStudents.forEach((st, idx) => {
                 const studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
@@ -1076,7 +1097,6 @@
                 });
             });
 
-            // Légère attente pour le rendu des canvas / images QR
             setTimeout(() => {
                 filteredStudents.forEach((st, idx) => {
                     const tempDiv = document.getElementById(`temp_qr_${idx}`);
@@ -1462,12 +1482,12 @@
 
         function confirmAddSingleStudentModal() {
             const sClass = document.getElementById('newStudentClass').value;
-            const name = document.getElementById('newStudentName').value.trim();
+            const name = normalizeStudentName(document.getElementById('newStudentName').value);
 
             if (!name) return alert("Veuillez saisir le Nom et Prénom de l'élève.");
             
             const data = getAppData();
-            if (data.students.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+            if (data.students.some(s => normalizeStudentName(s.name).toLowerCase() === name.toLowerCase())) {
                 return alert("Un élève porte déjà ce nom.");
             }
 
@@ -1488,9 +1508,12 @@
 
             if (confirm(`Voulez-vous vraiment supprimer l'élève "${studentName}" ? Cette action est irréversible.`)) {
                 let data = getAppData();
-                data.students = data.students.filter(s => s.name !== studentName);
+                const normName = normalizeStudentName(studentName);
+                data.students = data.students.filter(s => normalizeStudentName(s.name) !== normName);
                 if (data.records && data.records[studentName]) delete data.records[studentName];
+                if (data.records && data.records[normName]) delete data.records[normName];
                 if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
+                if (data.courseRecords && data.courseRecords[normName]) delete data.courseRecords[normName];
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
@@ -1519,15 +1542,16 @@
         }
 
         function addSingleStudentToData(data, name, studentClass) {
-            data.students.push({ name: name, studentClass: studentClass });
-            data.records[name] = {};
-            data.courseRecords[name] = {};
+            const cleanName = normalizeStudentName(name);
+            data.students.push({ name: cleanName, studentClass: studentClass });
+            data.records[cleanName] = {};
+            data.courseRecords[cleanName] = {};
             data.domains.forEach(d => {
-                data.records[name][d.id] = {};
-                data.courseRecords[name][d.id] = {};
+                data.records[cleanName][d.id] = {};
+                data.courseRecords[cleanName][d.id] = {};
                 d.competencies.forEach((_, idx) => {
-                    data.records[name][d.id][idx] = 0;
-                    data.courseRecords[name][d.id][idx] = false;
+                    data.records[cleanName][d.id][idx] = 0;
+                    data.courseRecords[cleanName][d.id][idx] = false;
                 });
             });
         }
@@ -1544,9 +1568,9 @@
                 
                 const cols = line.split(/;|,/);
                 if (cols.length > 0) {
-                    let rawName = cols[0].replace(/"/g, '').trim();
+                    let rawName = normalizeStudentName(cols[0].replace(/"/g, ''));
                     if (rawName && rawName.toLowerCase() !== 'élèves' && rawName.toLowerCase() !== 'eleves' && rawName.toLowerCase() !== 'nom') {
-                        if (!data.students.some(s => s.name.toLowerCase() === rawName.toLowerCase())) {
+                        if (!data.students.some(s => normalizeStudentName(s.name).toLowerCase() === rawName.toLowerCase())) {
                             addSingleStudentToData(data, rawName, targetClass);
                             countAdded++;
                         }
