@@ -245,7 +245,11 @@
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
                             <i class="fa-solid fa-filter text-sky-600"></i> Filtrer et afficher par classe :
                         </span>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="generateClassQRPdf()" class="bg-branddark hover:bg-slate-800 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-pdf text-amber-400"></i>
+                                <span>Créer les QR des jeunes (PDF)</span>
+                            </button>
                             <span id="selectedClassCount" class="text-xs text-slate-500 font-medium"></span>
                             <div id="deleteClassActionContainer"></div>
                         </div>
@@ -313,7 +317,7 @@
         </div>
     </footer>
 
-    <!-- MODAL DE GESTION DES ÉLÈVES (NOUVELLE ERGONOMIE) -->
+    <!-- MODAL DE GESTION DES ÉLÈVES -->
     <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl space-y-5">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -454,6 +458,9 @@
             <div id="manageDomainsContainer" class="flex-grow overflow-y-auto space-y-4 pr-1"></div>
         </div>
     </div>
+
+    <!-- CONTAINER TEMPORAIRE DÉDIÉ À LA GÉNÉRATION DES QR CODES BATCH -->
+    <div id="hiddenQrContainer" class="hidden"></div>
 
     <!-- SCRIPT LOGIQUE & DONNÉES -->
     <script>
@@ -959,21 +966,24 @@
             renderTeacherTable();
         }
 
+        function getFilteredStudentsList() {
+            const data = getAppData();
+            if (selectedTeacherClassFilter === 'ALL_AP') {
+                return data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
+            } else if (selectedTeacherClassFilter === 'ALL_PH') {
+                return data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
+            } else {
+                return data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
+            }
+        }
+
         function renderTeacherTable() {
             const data = getAppData();
             const tbody = document.getElementById('teacherTableBody');
             tbody.innerHTML = "";
             const baseUrl = window.location.href.split('?')[0];
 
-            let filteredStudents = data.students;
-
-            if (selectedTeacherClassFilter === 'ALL_AP') {
-                filteredStudents = data.students.filter(s => [...apCapClasses, ...apBacClasses].includes(s.studentClass));
-            } else if (selectedTeacherClassFilter === 'ALL_PH') {
-                filteredStudents = data.students.filter(s => [...phCapClasses, ...phBacClasses].includes(s.studentClass));
-            } else {
-                filteredStudents = data.students.filter(s => s.studentClass === selectedTeacherClassFilter);
-            }
+            let filteredStudents = getFilteredStudentsList();
 
             const countEl = document.getElementById('selectedClassCount');
             if (countEl) countEl.innerText = `${filteredStudents.length} élève(s) affiché(s)`;
@@ -1022,6 +1032,107 @@
                     </tr>
                 `;
             });
+        }
+
+        /* --- FONCTION DE GÉNÉRATION PDF DU TROMBINOSCOPE DES QR CODES --- */
+        function generateClassQRPdf() {
+            const filteredStudents = getFilteredStudentsList();
+            if (filteredStudents.length === 0) {
+                return alert("Aucun élève à exporter pour ce filtre.");
+            }
+
+            const baseUrl = window.location.href.split('?')[0];
+            const hiddenContainer = document.getElementById('hiddenQrContainer');
+            hiddenContainer.innerHTML = "";
+
+            // Génération dynamique d'une fenêtre d'impression optimisée PDF
+            const printWin = window.open('', '_blank');
+            if (!printWin) {
+                return alert("Veuillez autoriser les fenêtres surgissantes (pop-ups) pour télécharger le PDF.");
+            }
+
+            let classTitle = selectedTeacherClassFilter;
+            if (selectedTeacherClassFilter === 'ALL_AP') classTitle = "Toutes les classes Aménagement Paysager";
+            if (selectedTeacherClassFilter === 'ALL_PH') classTitle = "Toutes les classes Production Horticole";
+
+            let cardsHtml = "";
+            let generatedImagesCount = 0;
+
+            filteredStudents.forEach((st, idx) => {
+                const studentUrl = `${baseUrl}?eleve=${encodeURIComponent(st.name)}`;
+                const qrDivId = `temp_qr_${idx}`;
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.id = qrDivId;
+                hiddenContainer.appendChild(tempDiv);
+
+                new QRCode(tempDiv, {
+                    text: studentUrl,
+                    width: 140,
+                    height: 140,
+                    colorDark : "#0c3547",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+
+            // Légère attente pour le rendu des canvas / images QR
+            setTimeout(() => {
+                filteredStudents.forEach((st, idx) => {
+                    const tempDiv = document.getElementById(`temp_qr_${idx}`);
+                    const img = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
+                    const imgSrc = img ? (img.src || img.toDataURL('image/png')) : '';
+
+                    cardsHtml += `
+                        <div style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; text-align: center; background-color: #ffffff; page-break-inside: avoid; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 14px; font-weight: 700; color: #0c3547; margin-bottom: 2px;">${st.name}</div>
+                            <div style="font-size: 11px; font-weight: 600; color: #4CAF50; margin-bottom: 8px;">${st.studentClass}</div>
+                            <img src="${imgSrc}" style="width: 120px; height: 120px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px;" />
+                            <div style="font-size: 9px; color: #64748b; margin-top: 6px;">Passeport de Compétences</div>
+                        </div>
+                    `;
+                });
+
+                printWin.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="fr">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>QR Codes - ${classTitle}</title>
+                        <style>
+                            @page { size: A4 portrait; margin: 12mm; }
+                            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #fff; color: #0f172a; }
+                            .header { text-align: center; border-bottom: 2px solid #0c3547; padding-bottom: 10px; margin-bottom: 16px; }
+                            .header h1 { margin: 0; font-size: 20px; color: #0c3547; }
+                            .header p { margin: 4px 0 0 0; font-size: 12px; color: #64748b; }
+                            .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+                            @media print {
+                                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Fiche d'accès QR Code - ${classTitle}</h1>
+                            <p>Scannez pour accéder au passeport de compétences de l'élève</p>
+                        </div>
+                        <div class="grid">
+                            ${cardsHtml}
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                }, 300);
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+
+                printWin.document.close();
+                hiddenContainer.innerHTML = "";
+            }, 300);
         }
 
         function showLinkModal(name, studentClass, url) {
@@ -1280,12 +1391,11 @@
             }
         }
 
-        /* --- NOUVELLE LOGIQUE GESTION ÉLÈVES DANS LE MODAL --- */
+        /* --- LOGIQUE GESTION ÉLÈVES DANS LE MODAL --- */
         function openAddStudentModal() { 
             document.getElementById('newStudentName').value = "";
             document.getElementById('csvFileInput').value = "";
             
-            // Si une classe spécifique est filtrée dans le tableau, on pré-sélectionne cette classe
             if (selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
                 document.getElementById('newStudentClass').value = selectedTeacherClassFilter;
             }
@@ -1314,12 +1424,10 @@
             const secDelete = document.getElementById('secDeleteStudent');
             const secImport = document.getElementById('secImportStudent');
 
-            // Reset des styles
             [btnAdd, btnDelete, btnImport].forEach(btn => {
                 btn.className = "py-2 px-3 rounded-xl text-xs font-bold transition border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-center";
             });
 
-            // Reset de l'affichage
             secAdd.classList.add('hidden');
             secDelete.classList.add('hidden');
             secImport.classList.add('hidden');
