@@ -270,22 +270,12 @@
                     </div>
                 </div>
 
-                <!-- TABLEAU DES ÉLÈVES FILTRÉS AVEC SUPPRESSION GROUPÉE -->
+                <!-- TABLEAU DES ÉLÈVES FILTRÉS -->
                 <div class="space-y-2">
-                    <div class="flex justify-between items-center px-1">
-                        <span class="text-xs font-semibold text-slate-500" id="selectionCountBadge">0 élève(s) sélectionné(s)</span>
-                        <button id="deleteSelectedBtn" onclick="deleteSelectedStudents()" disabled class="bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Supprimer la sélection</span>
-                        </button>
-                    </div>
                     <div class="overflow-x-auto border border-slate-100 rounded-xl">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100/70 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                                    <th class="py-3 px-4 w-10 text-center">
-                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllStudents(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4 cursor-pointer">
-                                    </th>
                                     <th class="py-3 px-4 font-semibold">Élève</th>
                                     <th class="py-3 px-4 font-semibold">Filière / Classe (Modifiable)</th>
                                     <th class="py-3 px-4 font-semibold">Accès & QR Code</th>
@@ -323,13 +313,18 @@
         </div>
     </footer>
 
-    <!-- MODAL D'AJOUT ET D'IMPORTATION D'ÉLÈVES -->
+    <!-- MODAL DE GESTION DES ÉLÈVES (NOUVELLE ERGONOMIE) -->
     <div id="addStudentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
-            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Gestion des élèves</h3>
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-user-gear mr-2 text-nature"></i>Gestion des élèves par classe</h3>
+                <button onclick="closeAddStudentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <!-- ÉTAPE 1: SÉLECTION DE LA CLASSE -->
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Filière et Classe à attribuer :</label>
-                <select id="newStudentClass" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm mb-2 bg-white font-medium focus:outline-none focus:border-nature">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">1. Sélectionner une classe :</label>
+                <select id="newStudentClass" onchange="onModalClassChange()" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 font-semibold focus:outline-none focus:border-nature">
                     <optgroup label="Aménagement Paysager - CAP JP">
                         <option value="1 CAP JP">1 CAP JP (Jardinier Paysagiste)</option>
                         <option value="2 CAP JP" selected>2 CAP JP (Jardinier Paysagiste)</option>
@@ -351,27 +346,53 @@
                 </select>
             </div>
 
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer">
-                    <input type="checkbox" id="csvImportCheck" onchange="toggleCsvImportMode(this.checked)" class="rounded text-nature focus:ring-nature w-4 h-4">
-                    <span><i class="fa-solid fa-file-csv text-emerald-600 mr-1"></i> Importer une liste depuis un fichier CSV (Pronote)</span>
-                </label>
+            <!-- ÉTAPE 2: SÉLECTION DE L'ACTION -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">2. Choisir l'action à réaliser :</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" id="tabAddBtn" onclick="switchStudentActionTab('add')" class="py-2 px-3 rounded-xl text-xs font-bold transition border border-nature bg-nature text-white text-center">
+                        <i class="fa-solid fa-user-plus block text-sm mb-1"></i> Ajouter
+                    </button>
+                    <button type="button" id="tabDeleteBtn" onclick="switchStudentActionTab('delete')" class="py-2 px-3 rounded-xl text-xs font-bold transition border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-center">
+                        <i class="fa-solid fa-user-minus block text-sm mb-1 text-red-500"></i> Supprimer
+                    </button>
+                    <button type="button" id="tabImportBtn" onclick="switchStudentActionTab('import')" class="py-2 px-3 rounded-xl text-xs font-bold transition border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-center">
+                        <i class="fa-solid fa-file-excel block text-sm mb-1 text-emerald-600"></i> Importer
+                    </button>
+                </div>
             </div>
 
-            <div id="singleStudentSection">
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom :</label>
-                <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature">
+            <!-- CONTENU DE L'ACTION 1 : AJOUTER UN ÉLÈVE -->
+            <div id="secAddStudent" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nom et Prénom de l'élève :</label>
+                <input type="text" id="newStudentName" placeholder="Ex: Dupont Lucas" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-nature bg-white">
+                <button onclick="confirmAddSingleStudentModal()" class="w-full py-2.5 bg-nature hover:bg-green-600 text-white rounded-xl text-xs font-bold shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Ajouter cet élève
+                </button>
             </div>
 
-            <div id="csvImportSection" class="hidden space-y-2">
-                <label class="block text-xs font-semibold text-slate-600">Sélectionner votre fichier d'export Pronote (.csv) :</label>
-                <input type="file" id="csvFileInput" accept=".csv, .txt" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                <p class="text-[11px] text-slate-400 italic">Tous les élèves contenus dans le fichier CSV seront automatiquement ajoutés dans la classe sélectionnée ci-dessus.</p>
+            <!-- CONTENU DE L'ACTION 2 : SUPPRIMER UN ÉLÈVE -->
+            <div id="secDeleteStudent" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Sélectionner l'élève à supprimer :</label>
+                <select id="studentToDeleteSelect" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white font-medium focus:outline-none focus:border-red-500">
+                </select>
+                <button onclick="confirmDeleteStudentFromModal()" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold shadow transition">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Supprimer l'élève sélectionné
+                </button>
             </div>
 
-            <div class="flex justify-end space-x-3 pt-2 border-t border-slate-100">
-                <button onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">Annuler</button>
-                <button onclick="confirmAddStudent()" class="px-4 py-2 bg-nature hover:bg-green-600 text-white rounded-xl text-xs font-semibold shadow transition">Enregistrer</button>
+            <!-- CONTENU DE L'ACTION 3 : IMPORTER UN FICHIER -->
+            <div id="secImportStudent" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="block text-xs font-semibold text-slate-600">Fichier Excel / CSV (Export Pronote) :</label>
+                <input type="file" id="csvFileInput" accept=".csv, .txt, .xlsx, .xls" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer bg-white rounded-xl border border-slate-200 p-1">
+                <p class="text-[11px] text-slate-400 italic">Tous les élèves importés seront automatiquement intégrés dans la classe choisie.</p>
+                <button onclick="confirmImportStudentModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition">
+                    <i class="fa-solid fa-file-import mr-1"></i> Lancer l'importation
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+                <button onclick="closeAddStudentModal()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">Fermer</button>
             </div>
         </div>
     </div>
@@ -539,12 +560,25 @@
         let currentStudent = null;
         let activeDomainId = null;
         let selectedTeacherClassFilter = "ALL_AP";
+        let activeStudentActionTab = "add";
 
         function changeStudentClass(studentName, newClass) {
             let data = getAppData();
             let student = data.students.find(s => s.name === studentName);
             if (student) {
                 student.studentClass = newClass;
+                saveAppData(data);
+                renderTeacherFilterButtons();
+                renderTeacherTable();
+            }
+        }
+
+        function deleteSingleStudent(studentName) {
+            if (confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} ?Cette action est irréversible.`)) {
+                let data = getAppData();
+                data.students = data.students.filter(s => s.name !== studentName);
+                if (data.records && data.records[studentName]) delete data.records[studentName];
+                if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
                 saveAppData(data);
                 renderTeacherFilterButtons();
                 renderTeacherTable();
@@ -568,50 +602,6 @@
                 renderTeacherFilterButtons();
                 renderTeacherTable();
                 alert(`La classe ${className} et ses ${studentsToRemove.length} élève(s) ont été supprimés.`);
-            }
-        }
-
-        function toggleSelectAllStudents(isChecked) {
-            const checkboxes = document.querySelectorAll('.student-select-cb');
-            checkboxes.forEach(cb => cb.checked = isChecked);
-            updateSelectionState();
-        }
-
-        function updateSelectionState() {
-            const checkboxes = document.querySelectorAll('.student-select-cb');
-            const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-            const selectAllCb = document.getElementById('selectAllCheckbox');
-            const btn = document.getElementById('deleteSelectedBtn');
-            const badge = document.getElementById('selectionCountBadge');
-
-            if (selectAllCb) {
-                selectAllCb.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
-            }
-            if (badge) {
-                badge.innerText = `${selectedCount} élève(s) sélectionné(s)`;
-            }
-            if (btn) {
-                btn.disabled = selectedCount === 0;
-            }
-        }
-
-        function deleteSelectedStudents() {
-            const checkboxes = document.querySelectorAll('.student-select-cb:checked');
-            const selectedNames = Array.from(checkboxes).map(cb => cb.value);
-
-            if (selectedNames.length === 0) return;
-
-            if (confirm(`Voulez-vous vraiment supprimer les ${selectedNames.length} élève(s) sélectionné(s) ?Cette action effacera définitivement toutes leurs données.`)) {
-                let data = getAppData();
-                selectedNames.forEach(name => {
-                    data.students = data.students.filter(s => s.name !== name);
-                    if (data.records && data.records[name]) delete data.records[name];
-                    if (data.courseRecords && data.courseRecords[name]) delete data.courseRecords[name];
-                });
-
-                saveAppData(data);
-                renderTeacherFilterButtons();
-                renderTeacherTable();
             }
         }
 
@@ -989,8 +979,7 @@
             if (countEl) countEl.innerText = `${filteredStudents.length} élève(s) affiché(s)`;
 
             if (filteredStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe.</td></tr>`;
-                updateSelectionState();
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 text-xs">Aucun élève inscrit dans cette classe.</td></tr>`;
                 return;
             }
 
@@ -1013,9 +1002,6 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 px-4 text-center">
-                            <input type="checkbox" value="${st.name}" onchange="updateSelectionState()" class="student-select-cb rounded text-nature focus:ring-nature w-4 h-4 cursor-pointer">
-                        </td>
                         <td class="py-3 px-4 font-semibold text-slate-800">${st.name}</td>
                         <td class="py-3 px-4">
                             <select onchange="changeStudentClass('${st.name}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:border-nature cursor-pointer">
@@ -1029,14 +1015,13 @@
                             </button>
                         </td>
                         <td class="py-3 px-4"><div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-nature h-full" style="width: ${pct}%"></div></div></td>
-                        <td class="py-3 px-4 text-right">
-                            <button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg" title="Voir le profil">Voir</button>
+                        <td class="py-3 px-4 text-right space-x-1">
+                            <button onclick="currentStudent='${st.name}'; showStudentView();" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition" title="Voir le profil">Voir</button>
+                            <button onclick="deleteSingleStudent('${st.name}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition" title="Supprimer cet élève"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `;
             });
-
-            updateSelectionState();
         }
 
         function showLinkModal(name, studentClass, url) {
@@ -1295,11 +1280,18 @@
             }
         }
 
+        /* --- NOUVELLE LOGIQUE GESTION ÉLÈVES DANS LE MODAL --- */
         function openAddStudentModal() { 
-            document.getElementById('csvImportCheck').checked = false;
-            toggleCsvImportMode(false);
             document.getElementById('newStudentName').value = "";
             document.getElementById('csvFileInput').value = "";
+            
+            // Si une classe spécifique est filtrée dans le tableau, on pré-sélectionne cette classe
+            if (selectedTeacherClassFilter !== 'ALL_AP' && selectedTeacherClassFilter !== 'ALL_PH') {
+                document.getElementById('newStudentClass').value = selectedTeacherClassFilter;
+            }
+            
+            switchStudentActionTab('add');
+            updateDeleteSelectOptions();
             document.getElementById('addStudentModal').classList.remove('hidden'); 
         }
 
@@ -1307,52 +1299,115 @@
             document.getElementById('addStudentModal').classList.add('hidden'); 
         }
 
-        function toggleCsvImportMode(isCsv) {
-            const singleSection = document.getElementById('singleStudentSection');
-            const csvSection = document.getElementById('csvImportSection');
-            if (isCsv) {
-                singleSection.classList.add('hidden');
-                csvSection.classList.remove('hidden');
-            } else {
-                singleSection.classList.remove('hidden');
-                csvSection.classList.add('hidden');
+        function onModalClassChange() {
+            updateDeleteSelectOptions();
+        }
+
+        function switchStudentActionTab(tab) {
+            activeStudentActionTab = tab;
+
+            const btnAdd = document.getElementById('tabAddBtn');
+            const btnDelete = document.getElementById('tabDeleteBtn');
+            const btnImport = document.getElementById('tabImportBtn');
+
+            const secAdd = document.getElementById('secAddStudent');
+            const secDelete = document.getElementById('secDeleteStudent');
+            const secImport = document.getElementById('secImportStudent');
+
+            // Reset des styles
+            [btnAdd, btnDelete, btnImport].forEach(btn => {
+                btn.className = "py-2 px-3 rounded-xl text-xs font-bold transition border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-center";
+            });
+
+            // Reset de l'affichage
+            secAdd.classList.add('hidden');
+            secDelete.classList.add('hidden');
+            secImport.classList.add('hidden');
+
+            if (tab === 'add') {
+                btnAdd.className = "py-2 px-3 rounded-xl text-xs font-bold transition border border-nature bg-nature text-white text-center";
+                secAdd.classList.remove('hidden');
+            } else if (tab === 'delete') {
+                btnDelete.className = "py-2 px-3 rounded-xl text-xs font-bold transition border border-red-500 bg-red-500 text-white text-center";
+                secDelete.classList.remove('hidden');
+                updateDeleteSelectOptions();
+            } else if (tab === 'import') {
+                btnImport.className = "py-2 px-3 rounded-xl text-xs font-bold transition border border-emerald-600 bg-emerald-600 text-white text-center";
+                secImport.classList.remove('hidden');
             }
         }
 
-        function confirmAddStudent() {
-            const sClass = document.getElementById('newStudentClass').value;
-            const isCsvMode = document.getElementById('csvImportCheck').checked;
+        function updateDeleteSelectOptions() {
+            const selectedClass = document.getElementById('newStudentClass').value;
+            const data = getAppData();
+            const classStudents = data.students.filter(s => s.studentClass === selectedClass);
+            const selectEl = document.getElementById('studentToDeleteSelect');
 
-            if (isCsvMode) {
-                const fileInput = document.getElementById('csvFileInput');
-                if (!fileInput.files || fileInput.files.length === 0) {
-                    return alert("Veuillez sélectionner un fichier CSV Pronote.");
-                }
-
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = function(e) {
-                    const content = e.target.result;
-                    parseAndImportCSV(content, sClass);
-                };
-
-                reader.readAsText(file, 'UTF-8');
+            if (classStudents.length === 0) {
+                selectEl.innerHTML = `<option value="">Aucun élève trouvé dans ${selectedClass}</option>`;
+                selectEl.disabled = true;
             } else {
-                const name = document.getElementById('newStudentName').value.trim();
-                if (!name) return alert("Veuillez saisir au moins le Nom et Prénom de l'élève.");
-                
-                const data = getAppData();
-                if (data.students.some(s => s.name.toLowerCase() === name.toLowerCase())) {
-                    return alert("Un élève porte déjà ce nom.");
-                }
+                selectEl.disabled = false;
+                selectEl.innerHTML = classStudents.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+            }
+        }
 
-                addSingleStudentToData(data, name, sClass);
+        function confirmAddSingleStudentModal() {
+            const sClass = document.getElementById('newStudentClass').value;
+            const name = document.getElementById('newStudentName').value.trim();
+
+            if (!name) return alert("Veuillez saisir le Nom et Prénom de l'élève.");
+            
+            const data = getAppData();
+            if (data.students.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                return alert("Un élève porte déjà ce nom.");
+            }
+
+            addSingleStudentToData(data, name, sClass);
+            saveAppData(data);
+            document.getElementById('newStudentName').value = "";
+            renderTeacherFilterButtons();
+            renderTeacherTable();
+            updateDeleteSelectOptions();
+            alert(`L'élève ${name} a été ajouté à la classe ${sClass} !`);
+        }
+
+        function confirmDeleteStudentFromModal() {
+            const selectEl = document.getElementById('studentToDeleteSelect');
+            const studentName = selectEl.value;
+
+            if (!studentName) return alert("Veuillez sélectionner un élève à supprimer.");
+
+            if (confirm(`Voulez-vous vraiment supprimer l'élève "${studentName}" ? Cette action est irréversible.`)) {
+                let data = getAppData();
+                data.students = data.students.filter(s => s.name !== studentName);
+                if (data.records && data.records[studentName]) delete data.records[studentName];
+                if (data.courseRecords && data.courseRecords[studentName]) delete data.courseRecords[studentName];
                 saveAppData(data);
-                closeAddStudentModal();
                 renderTeacherFilterButtons();
                 renderTeacherTable();
+                updateDeleteSelectOptions();
+                alert(`L'élève ${studentName} a été supprimé.`);
             }
+        }
+
+        function confirmImportStudentModal() {
+            const sClass = document.getElementById('newStudentClass').value;
+            const fileInput = document.getElementById('csvFileInput');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                return alert("Veuillez sélectionner un fichier CSV / Excel.");
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result;
+                parseAndImportCSV(content, sClass);
+            };
+
+            reader.readAsText(file, 'UTF-8');
         }
 
         function addSingleStudentToData(data, name, studentClass) {
@@ -1371,7 +1426,7 @@
 
         function parseAndImportCSV(text, targetClass) {
             const lines = text.split(/\r?\n/);
-            if (lines.length <= 1) return alert("Le fichier CSV est vide ou invalide.");
+            if (lines.length <= 1) return alert("Le fichier est vide ou invalide.");
 
             const data = getAppData();
             let countAdded = 0;
@@ -1379,10 +1434,10 @@
             lines.forEach((line, index) => {
                 if (index === 0 || !line.trim()) return;
                 
-                const cols = line.split(';');
+                const cols = line.split(/;|,/);
                 if (cols.length > 0) {
                     let rawName = cols[0].replace(/"/g, '').trim();
-                    if (rawName && rawName !== 'Élèves') {
+                    if (rawName && rawName.toLowerCase() !== 'élèves' && rawName.toLowerCase() !== 'eleves' && rawName.toLowerCase() !== 'nom') {
                         if (!data.students.some(s => s.name.toLowerCase() === rawName.toLowerCase())) {
                             addSingleStudentToData(data, rawName, targetClass);
                             countAdded++;
